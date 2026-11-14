@@ -7,7 +7,7 @@ UPSTREAM.sha256 records every imported file, including all three package-lock.js
 files. Initial copies are byte-for-byte archive contents. LICENSE and
 frontend/LICENSE are preserved. No upstream workflows were imported.
 
-Integration status: Dockerfile now builds explicit local source paths using Node 22
+Integration status: Dockerfile now builds explicit local source paths using Node 24
 and installs native runtime dependencies in the final stage. This wiring is
 UNVERIFIED: the legacy runtime's pinned Alpine packages are unavailable.
 Plan 001 integration changes (original hashes remain in UPSTREAM.sha256):
@@ -23,9 +23,11 @@ Plan 001 integration changes (original hashes remain in UPSTREAM.sha256):
   DBSTATS_RUNTIME_IMAGE_VERIFIED must remain unset until Plan 003 passes the
   runtime smoke gate. PR validation builds source only and never publishes.
 
-Run `sh scripts/check-app.sh` from a clean checkout with Node 22. This runs
+Run `sh scripts/check-app.sh` from a clean checkout with Node 24. This runs
 locked installs, all builds, the 11 configuration tests, non-mutating lint,
 routing assertions and tracked-file cleanliness checks. The absent e2e config
 is not included. Backend's existing 24 unused-variable warnings remain visible.
 The two six-byte .db files and secrets.yaml files are upstream test fixtures,
 not real Home Assistant databases or added credentials.
+
+Plan 003 reconciles d122442 builder tooling: Python and py3-setuptools remain builder-only with node-gyp 12 and the musl Node 24 runtime; runtime tool absence is checked by scripts/test-image.sh. Historical Node 22 test results in NOTES.md are not final-image evidence.

@@ -1,6 +1,6 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.11@sha256:79fd58d9d7f2820e8b2e7d2b11a24e22b96ae7a48569af3372183592a1b22974
 FROM ${BUILD_FROM} AS app-build
-RUN apk add --no-cache nodejs=24.22.3-r0 npm python3 make g++
+RUN apk add --no-cache nodejs=24.22.3-r0 npm python3 py3-setuptools make g++
 WORKDIR /build
 COPY app/shared/package.json app/shared/package-lock.json app/shared/.npmrc app/shared/.eslintrc.js app/shared/.prettierrc app/shared/tsconfig.json shared/
 COPY app/shared/src/ shared/src/

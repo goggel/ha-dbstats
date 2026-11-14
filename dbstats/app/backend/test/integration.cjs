@@ -15,6 +15,7 @@ const { ConfigService } = require('../dist/backend/src/config.service');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbstats-fixture-'));
 const database = path.join(dir, 'fixture.db');
 const exec = (db, sql) => new Promise((resolve, reject) => db.exec(sql, e => e ? reject(e) : resolve()));
+const request = (url, options = {}) => fetch(url, { signal: AbortSignal.timeout(3000), ...options });
 const close = db => new Promise((resolve, reject) => db.close(e => e ? reject(e) : resolve()));
 const snapshot = () => Object.fromEntries(fs.readdirSync(dir).map(name => {
   const file = path.join(dir, name), stat = fs.statSync(file);
@@ -41,6 +42,7 @@ async function read(options) {
     await assert.rejects(exec(ro, 'INSERT INTO fixture VALUES(43)'), /SQLITE_READONLY/);
     await close(ro);
     const after = snapshot();
+    assert.deepEqual(Object.keys(after), Object.keys(before));
     if (process.env.FIXTURE_STRICT_WRITABLE === '1') assert.deepEqual(after, before);
     for (const name of ['fixture.db', 'fixture.db-wal']) assert.deepEqual(after[name], before[name]);
     const shmAfter = fs.readFileSync(database + '-shm');
@@ -61,18 +63,20 @@ async function read(options) {
     child.stdout.on('data', chunk => { logs += chunk; });
     child.stderr.on('data', chunk => { logs += chunk; });
     for (let attempt = 0; ; attempt++) {
-      try { await fetch('http://127.0.0.1:31983/addon-api'); break; }
+      try { await request('http://127.0.0.1:31983/addon-api'); break; }
       catch { if (attempt === 100 || child.exitCode !== null) throw Error('HTTP fixture failed to start'); await new Promise(r => setTimeout(r, 100)); }
     }
     const base = 'http://127.0.0.1:31983';
-    assert.equal((await fetch(`${base}/addon-api`)).status, 404);
-    assert.equal((await fetch(`${base}/`)).status, 404);
-    assert.equal((await fetch(`${base}/api`)).status, 200);
-    assert.equal((await fetch(`${base}/addon-api/system/getTableRows`)).status, 200);
-    assert.equal((await fetch(`${base}/api-json`)).status, 200);
-    assert.equal((await fetch(`${base}/addon-api/unknown/nested`)).status, 404);
-    assert.equal((await fetch(`${base}/addon-api`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{invalid' })).status, 404);
-    assert.equal((await fetch(`${base}/addon-api/system/getTableRows?x[a]=1`)).status, 200);
+    assert.equal((await request(`${base}/addon-api`)).status, 404);
+    assert.equal((await request(`${base}/`)).status, 404);
+    assert.equal((await request(`${base}/api`)).status, 200);
+    const rows = await request(`${base}/addon-api/system/getTableRows`);
+    assert.equal(rows.status, 200);
+    assert.ok((await rows.text()).includes('fixture'));
+    assert.equal((await request(`${base}/api-json`)).status, 200);
+    assert.equal((await request(`${base}/addon-api/unknown/nested`)).status, 404);
+    assert.equal((await request(`${base}/addon-api`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{invalid' })).status, 404);
+    assert.equal((await request(`${base}/addon-api/system/getTableRows?x[a]=1`)).status, 200);
     child.kill('SIGTERM');
     await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('shutdown timed out')), 5000); child.once('exit', (code, signal) => { clearTimeout(timer); (code === 0 || signal === 'SIGTERM') ? resolve() : reject(Error(`shutdown failed: ${code}/${signal}`)); }); });
     child = null;
