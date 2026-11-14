@@ -53,3 +53,18 @@ it('ignores a late result after unmount', async () => {
     expect(container.textContent).toBe('');
     expect(spy).not.toHaveBeenCalled(); spy.mockRestore();
 });
+it('retains successful charts, shows server timeout, advances queue and retries', async () => {
+    const {request} = require('./requestQueue');
+    const rows = [{type: 'fixture', cnt: 42}];
+    global.fetch = jest.fn().mockResolvedValueOnce({ok:true,json:async()=>rows})
+        .mockResolvedValueOnce({ok:false,status:408,json:async()=>({code:'QUERY_TIMEOUT',metricId:'Fixture.rows'})})
+        .mockResolvedValue({ok:true,json:async()=>rows});
+    const apis = ['/retained','/server-timeout','/following'].map(url => options => request(url, options));
+    await act(async () => { render(<>{apis.map((api,i)=><CountStatsChart key={i} title={`Fixture ${i}`} api={api}/>)}</>,container); });
+    expect(container.textContent).toContain('timed out');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.textContent.match(/Chart result/g)).toHaveLength(2);
+    await act(async () => { container.querySelector('button').click(); });
+    expect(container.textContent.match(/Chart result/g)).toHaveLength(3);
+    expect(fetch).toHaveBeenCalledTimes(4);
+});

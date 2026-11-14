@@ -5,7 +5,8 @@ export class RequestTimeoutError extends Error {
 }
 // Server budget initially 180s, with at least 10s transport grace. Override at build time.
 const configured = Number(process.env.REACT_APP_REQUEST_TIMEOUT_MS);
-export const REQUEST_TIMEOUT_MS = Number.isFinite(configured) && configured > 190000 ? configured : 210000;
+export const REQUEST_TIMEOUT_MS = process.env.REACT_APP_REQUEST_TIMEOUT_MS === undefined ? 210000 : configured;
+if (!Number.isSafeInteger(REQUEST_TIMEOUT_MS) || REQUEST_TIMEOUT_MS < 210000 || REQUEST_TIMEOUT_MS > 300000) { throw new Error('Invalid REACT_APP_REQUEST_TIMEOUT_MS (210000..300000)'); }
 type Consumer = {resolve: (value: any) => void; reject: (reason: Error) => void; phase?: RequestOptions['onPhase']; cleanup: () => void};
 type Entry = {url: string; heavy: boolean; phase: RequestPhase; consumers: Set<Consumer>; controller: AbortController; abandon?: ReturnType<typeof setTimeout>; cancel?: () => void};
 const entries = new Map<string, Entry>();
@@ -26,9 +27,10 @@ async function execute(entry: Entry) {
                 let message = `Request failed (HTTP ${response.status})`;
                 try {
                     const body = await response.json();
+                    if (body.code === 'QUERY_TIMEOUT') { throw new RequestTimeoutError(); }
                     const detail = Array.isArray(body.message) ? body.message.join('; ') : body.message;
                     if (typeof detail === 'string') { message += `: ${detail}`; }
-                } catch { /* Non-JSON server errors still have a useful HTTP status. */ }
+                } catch (error) { if (error instanceof RequestTimeoutError) { throw error; } /* Non-JSON server errors still have a useful HTTP status. */ }
                 throw new Error(message);
             }
             const data = await response.json();

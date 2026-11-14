@@ -79,3 +79,9 @@ it('does not start an unsubscribed queued request when the lane frees before cle
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(jest.getTimerCount()).toBe(0);
 });
+it.each(['', '209999', '300001', 'NaN', '210000.5'])('rejects invalid browser timeout %s', value => {
+    const previous = process.env.REACT_APP_REQUEST_TIMEOUT_MS;
+    process.env.REACT_APP_REQUEST_TIMEOUT_MS = value;
+    try { expect(() => jest.isolateModules(() => require('./requestQueue'))).toThrow('Invalid REACT_APP_REQUEST_TIMEOUT_MS'); }
+    finally { if (previous === undefined) { delete process.env.REACT_APP_REQUEST_TIMEOUT_MS; } else { process.env.REACT_APP_REQUEST_TIMEOUT_MS = previous; } }
+});
