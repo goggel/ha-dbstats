@@ -1,9 +1,15 @@
 import { ConfigService } from './config.service';
 import * as path from 'path';
 
+class FixtureConfig extends ConfigService {
+  constructor(dir: string) {
+    super(dir, { env: {}, options: {} });
+  }
+}
+
 describe('Config Service', () => {
   it('should find and parse simple connection string', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/postgres_simple'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -16,7 +22,7 @@ describe('Config Service', () => {
     });
   });
   it('should not die on non valid yaml', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/non_valid_yaml'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -29,7 +35,7 @@ describe('Config Service', () => {
     });
   });
   it('should find and parse connection string in secrets', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/postgres_with_secrets'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -42,7 +48,7 @@ describe('Config Service', () => {
     });
   });
   it('should handle multiple secrets', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/multiple_secrets'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -55,7 +61,7 @@ describe('Config Service', () => {
     });
   });
   it('should find and parse connection string in packages', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/postgres_with_packages'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -68,7 +74,7 @@ describe('Config Service', () => {
     });
   });
   it('should find sqlite file in config', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/sqlite_file_in_config'),
     );
     expect(res.data.typeOrmConfig).toEqual(
@@ -80,7 +86,7 @@ describe('Config Service', () => {
     expect(res.data.typeOrmConfig.database).toContain('renamed.db');
   });
   it('should fall back to existing sqlite file', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/sqlite_file_exists'),
     );
     expect(res.data.typeOrmConfig).toEqual(
@@ -93,11 +99,11 @@ describe('Config Service', () => {
   });
   it('should throw when nothing found', () => {
     const throws = () =>
-      new ConfigService(path.join(__dirname, 'testConfigs/nothing_found'));
+      new FixtureConfig(path.join(__dirname, 'testConfigs/nothing_found'));
     expect(throws).toThrow();
   });
   it('should find and parse include files', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/postgres_in_include'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -110,7 +116,7 @@ describe('Config Service', () => {
     });
   });
   it('should parse named include files with recorder', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/mysql_include'),
     );
     expect(res.data.typeOrmConfig).toEqual({
@@ -123,7 +129,7 @@ describe('Config Service', () => {
     });
   });
   it('should not fail if some files dont exist in reality', () => {
-    const res = new ConfigService(
+    const res = new FixtureConfig(
       path.join(__dirname, 'testConfigs/files_dont_exist'),
     );
     expect(res.data.typeOrmConfig).toEqual({

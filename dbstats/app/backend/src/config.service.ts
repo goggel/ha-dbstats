@@ -1,4 +1,4 @@
-import * as YAML from 'js-yaml';
+import { ConfigurationError, HaYaml } from './ha-yaml';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { DataSourceOptions } from 'typeorm';
@@ -20,38 +20,36 @@ export type ConfigData = {
   maxRowsInChart: number;
 };
 
-function findKey(object: Record<string, unknown>, key: string) {
-  let value;
-  Object.keys(object).some(function (k) {
-    if (k === key) {
-      value = object[k];
-      return true;
-    }
-    if (object[k] && typeof object[k] === 'object') {
-      value = findKey(object[k] as Record<string, unknown>, key);
-      return value !== undefined;
-    }
-  });
-  return value;
-}
-
 @Injectable()
 export class ConfigService {
   public readonly data: ConfigData;
   private logger: Logger;
-  private readonly secretCache = {} as Record<string, Record<string, string>>;
-  constructor(haHomeDir?: string) {
+  constructor(
+    haHomeDir?: string,
+    sources?: { env: NodeJS.ProcessEnv; options: unknown },
+  ) {
     this.logger = new Logger(ConfigService.name);
-    const { env } = process;
+    const env = sources?.env ?? process.env;
 
-    const haAddonOptions =
-      fs.existsSync('/data/options.json') &&
-      JSON.parse(fs.readFileSync('/data/options.json', 'utf8'));
+    let haAddonOptions = sources?.options as { connectionString?: unknown };
+    if (!sources) {
+      try {
+        haAddonOptions =
+          fs.existsSync('/data/options.json') &&
+          JSON.parse(fs.readFileSync('/data/options.json', 'utf8'));
+      } catch {
+        throw new ConfigurationError('CONFIG_OPTIONS_INVALID');
+      }
+    }
+    const connection =
+      haAddonOptions?.connectionString || env.DB_CONNECT_STRING;
+    if (connection !== undefined && typeof connection !== 'string') {
+      throw new ConfigurationError('CONFIG_URL_INVALID');
+    }
     const typeOrmConfig = this.extractRecorderConfig(
       haHomeDir || env.HOME_DIR || '/homeassistant',
-      haAddonOptions?.connectionString || env.DB_CONNECT_STRING,
+      typeof connection === 'string' ? connection : undefined,
     );
-    this.secretCache = {};
     this.data = {
       typeOrmConfig,
       db: {
@@ -125,12 +123,19 @@ postgresql://@/DB_NAME?host=/path/to/dir
     if (dbConnectString.startsWith('sqlite')) {
       return 'sqlite';
     }
-    throw new Error(`Unknown database type ${dbConnectString.split(':')[0]}`);
+    throw new ConfigurationError('CONFIG_URL_INVALID');
   }
 
   static connectionStringToDatabaseOptions(
     dbConnectString: string,
   ): Partial<DataSourceOptions> {
+    if (
+      !/^(postgres(?:ql)?|mysql(?:\+pymysql)?|sqlite):\/\/.+/.test(
+        dbConnectString,
+      )
+    ) {
+      throw new ConfigurationError('CONFIG_URL_INVALID');
+    }
     const dbType = ConfigService.getDbTypeFromConnectionString(dbConnectString);
     const { env } = process;
     const queryTimeout = parseInt(env.DB_QUERY_TIMEOUT, 10) || 180_000;
@@ -170,144 +175,6 @@ postgresql://@/DB_NAME?host=/path/to/dir
     throw new Error(`Unknown database type ${dbType}`);
   }
 
-  replaceSecrets(data: string, secrets: Record<string, string>) {
-    return Object.entries(secrets as Record<string, string>).reduce(
-      (res, [secretName, secretValue]) => {
-        return res.split(`!secret ${secretName}`).join(secretValue);
-      },
-      data,
-    );
-  }
-
-  fixYaml(
-    data: string,
-    secrets: Record<string, string>,
-  ): { data: string; foundFilesOrDirs: Array<string> } {
-    // UGLY workaround because those yaml tags are non-standard and otherwise parser throws on them :(
-
-    //this.logger.log(`data`, data);
-    const noComments = data
-      .split('\n')
-      .filter((el) => !el.trim().startsWith('#'))
-      .join('\n');
-    //this.logger.log(`noComments`, noComments);
-    const ignoreTags = ['env_var', 'input'];
-    const noUnknownTags = ignoreTags.reduce(
-      (res, item) => res.split(`!${item}`).join(item),
-      noComments,
-    );
-    //this.logger.log(`NoUnknownTags`, noUnknownTags);
-    // https://github.com/home-assistant/core/blob/30710815f01fa1d184f1625c5a74f5e20e9f42a5/homeassistant/util/yaml/loader.py
-    const includes = [
-      'include_dir_merge_list',
-      'include_dir_list',
-      'include_dir_named',
-      'include_dir_merge_named',
-      'include',
-    ];
-    const foundFilesOrDirs = [];
-    const noIncludes = noUnknownTags
-      .split('\n')
-      .map((str) => {
-        return includes.reduce((res, item) => {
-          if (!res) {
-            return '';
-          }
-          const search = res.split(`!${item}`);
-          if (search.length === 1) {
-            return res;
-          }
-          foundFilesOrDirs.push(search[1].trim());
-          return '';
-        }, str);
-      })
-      .filter((el) => el)
-      .join('\n');
-    //this.logger.log(`noIncludes`, noIncludes);
-    const noSecrets = this.replaceSecrets(noIncludes, secrets)
-      .split('\n')
-      .map((line) => {
-        if (line.includes('!secret')) {
-          this.logger.warn(`Failed to replace ${line} - is this secret valid?`);
-          return line.replace('!secret', 'secret');
-        }
-        return line;
-      })
-      .join('\n');
-    //this.logger.log(`noSecrets`, noSecrets);
-    const res = { data: noSecrets, foundFilesOrDirs };
-    //this.logger.log(res);
-    return res;
-  }
-
-  loadSecrets(dir: string, homeDir: string): Record<string, string> {
-    if (this.secretCache[dir]) {
-      return this.secretCache[dir];
-    }
-    const secretsFileName = path.join(dir, '/secrets.yaml');
-    if (fs.existsSync(secretsFileName)) {
-      this.logger.log(`found and parsed secrets file`);
-      return YAML.load(fs.readFileSync(secretsFileName, 'utf-8'));
-    }
-    this.secretCache[dir] = {};
-    let currentDir = dir;
-    let secretsFound = false;
-    while (currentDir.length > homeDir.length && !secretsFound) {
-      currentDir = path.join(currentDir, '../');
-      this.logger.log(`going up to ${currentDir}`);
-      const upperDirSecrets = this.loadSecrets(currentDir, homeDir);
-      if (Object.keys(upperDirSecrets).length !== 0) {
-        secretsFound = true;
-        this.secretCache[dir] = {
-          ...this.secretCache[dir],
-          ...upperDirSecrets,
-        };
-        return this.secretCache[dir];
-      }
-    }
-    return {};
-  }
-
-  loadYaml(absPath: string, haHomeDir) {
-    this.logger.log(`Input: abspath ${absPath} homeDir ${haHomeDir}`);
-    if (!fs.existsSync(absPath)) {
-      this.logger.warn(
-        `Warn: path ${absPath} found in config but it does not exist!`,
-      );
-      return {};
-    }
-    if (fs.lstatSync(absPath).isDirectory()) {
-      return fs
-        .readdirSync(absPath, { recursive: true, encoding: 'utf-8' })
-        .map((file) => path.join(absPath, file))
-        .filter((file) => file.endsWith('.yaml'))
-        .map((file) => this.loadYaml(file, haHomeDir));
-    }
-    const text = fs.readFileSync(absPath, 'utf-8');
-    const secrets = this.loadSecrets(path.dirname(absPath), haHomeDir);
-    this.logger.log(
-      `${Object.keys(secrets).length} secrets found for file ${absPath}`,
-    );
-    const { data, foundFilesOrDirs } = this.fixYaml(text, secrets);
-    //this.logger.log(`Found files:`, foundFilesOrDirs);
-    const additional = foundFilesOrDirs.reduce((res, fileName) => {
-      const newData = this.loadYaml(
-        path.join(path.dirname(absPath), fileName),
-        haHomeDir,
-      );
-      return { ...res, ...{ [path.parse(fileName).name]: newData } };
-    }, {});
-    let loaded = {};
-    try {
-      loaded = data.trim() ? YAML.load(data) : {};
-    } catch (err) {
-      this.logger.warn(
-        `Failed to parse ${absPath}: ${err.message}, will try without it`,
-      );
-    }
-    return { ...loaded, additional };
-  }
-
   extractRecorderConfig(
     haHomeDir?: string,
     dbConnectString?: string,
@@ -327,13 +194,9 @@ postgresql://@/DB_NAME?host=/path/to/dir
       throw new Error(`Config file not found in path ${haHomeDir}`);
     }
     this.logger.log(`config file found, parsing`);
-    const data = this.loadYaml(configFileName, haHomeDir);
-    this.logger.log(`parsed config file`);
-
-    const recorder = findKey(data, 'recorder');
-    if (recorder?.db_url) {
-      this.logger.log(`found recorder config, gonna use it`);
-      return ConfigService.connectionStringToDatabaseOptions(recorder.db_url);
+    const url = new HaYaml(haHomeDir).recorder();
+    if (url !== undefined) {
+      return ConfigService.connectionStringToDatabaseOptions(url as string);
     }
     this.logger.log(
       `recorder options not found, gonna try standard database path`,
