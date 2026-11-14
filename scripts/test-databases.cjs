@@ -16,6 +16,6 @@ function run(args) {
    const ready=spawnSync('podman',['exec',names[0],'healthcheck.sh','--connect'],{timeout:5000,stdio:'ignore'}).status===0 && spawnSync('podman',['exec',names[1],'pg_isready','-U','dbstats_fixture'],{timeout:5000,stdio:'ignore'}).status===0;
    if(ready)break;if(i===59)throw Error('Disposable database readiness timed out');await new Promise(r=>setTimeout(r,1000));
   }
-  const r=spawnSync(process.execPath,['test/integration.cjs'],{cwd:path.resolve('dbstats/app/backend'),env:{...process.env,FIXTURE_PHASE:'databases',FIXTURE_MYSQL_URL:'mysql://dbstats_fixture:disposable_fixture_only@127.0.0.1:33306/dbstats_plan003_fixture',FIXTURE_POSTGRES_URL:'postgres://dbstats_fixture:disposable_fixture_only@127.0.0.1:35432/dbstats_plan003_fixture'},stdio:'inherit',timeout:60000});assert.equal(r.status,0);
+  const r=spawnSync(process.execPath,['test/integration.cjs'],{cwd:path.resolve('dbstats/app/backend'),env:{...process.env,FIXTURE_PHASE:'all',FIXTURE_MYSQL_URL:'mysql://dbstats_fixture:disposable_fixture_only@127.0.0.1:33306/dbstats_plan003_fixture',FIXTURE_POSTGRES_URL:'postgres://dbstats_fixture:disposable_fixture_only@127.0.0.1:35432/dbstats_plan003_fixture'},stdio:'inherit',timeout:60000});assert.equal(r.status,0);
  }finally{for(const n of created)spawnSync('podman',['rm','-f','--volumes',n],{timeout:60000,stdio:'ignore'});}
 })().catch(e=>{console.error(e.message);process.exitCode=1});
