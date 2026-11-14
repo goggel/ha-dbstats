@@ -159,6 +159,7 @@ postgresql://@/DB_NAME?host=/path/to/dir
     if (dbType === 'mysql') {
       const options: MysqlConnectionOptions = {
         type: 'mysql',
+        connectorPackage: 'mysql2',
         url: `mysql://${dbConnectString.split('://')[1]}`,
         extra: {
           options: `--max_execution_time=${queryTimeout}`,
