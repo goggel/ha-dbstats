@@ -1,6 +1,6 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base-nodejs:0.2.5
-FROM node:22-alpine AS app-build
-RUN apk add --no-cache python3 make g++
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.11@sha256:79fd58d9d7f2820e8b2e7d2b11a24e22b96ae7a48569af3372183592a1b22974
+FROM ${BUILD_FROM} AS app-build
+RUN apk add --no-cache nodejs=24.22.3-r0 npm python3 make g++
 WORKDIR /build
 COPY app/shared/package.json app/shared/package-lock.json app/shared/.npmrc app/shared/.eslintrc.js app/shared/.prettierrc app/shared/tsconfig.json shared/
 COPY app/shared/src/ shared/src/
@@ -8,6 +8,7 @@ RUN npm --prefix shared ci && npm --prefix shared run build
 COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc app/backend/nest-cli.json app/backend/tsconfig.json app/backend/jest.config.ts backend/
 COPY app/backend/src/ backend/src/
 RUN npm --prefix backend ci && npm --prefix backend run build
+RUN npm --prefix backend prune --omit=dev
 COPY app/frontend/package.json app/frontend/package-lock.json app/frontend/.npmrc app/frontend/.eslintrc.json app/frontend/.eslintignore app/frontend/config-overrides.js app/frontend/tsconfig.json app/frontend/tsconfig.path.json frontend/
 COPY app/frontend/src/ frontend/src/
 COPY app/frontend/public/ frontend/public/
@@ -19,30 +20,18 @@ FROM ${BUILD_FROM}
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install requirements for add-on
-RUN apk update
-RUN  apk add --no-cache  gcc=13.2.1_git20231014-r0
-#RUN  apk add --no-cache              g++=13.2.1_git20231014-r0
-RUN  apk add --no-cache              py3-pip=23.3.1-r0
-RUN  apk add --no-cache              python3=3.11.11-r0
-RUN  apk add --no-cache   sqlite=3.44.2-r0
-RUN  apk add --no-cache  nginx=1.24.0-r16
-RUN  rm -f -r /etc/nginx
+RUN apk add --no-cache nodejs=24.22.3-r0 npm sqlite nginx \
+    && rm -rf /etc/nginx
 
 # Copy root file system
 COPY rootfs /
 
 COPY --from=app-build /build/backend/dist /usr/src/app/dist
-COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc /usr/src/app/
+COPY --from=app-build /build/backend/node_modules /usr/src/app/node_modules
+COPY app/backend/package.json /usr/src/app/package.json
 COPY --from=app-build /build/frontend/build /var/www/html
 COPY app/UPSTREAM.md /usr/src/app/UPSTREAM.md
 WORKDIR /usr/src/app
-# Compile SQLite for the final platform and Node ABI, never copy builder binaries.
-RUN apk add --no-cache --virtual .native-build g++ make python3 \
-    && npm_config_build_from_source=true npm ci --omit=dev --no-fund --no-audit \
-    && npm cache clean --force \
-    && apk del .native-build
-
 # Health check
 #HEALTHCHECK --start-period=10s \
 #    CMD curl --fail http://127.0.0.1:3000 || exit 1

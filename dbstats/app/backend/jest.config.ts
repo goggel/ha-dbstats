@@ -8,6 +8,7 @@ module.exports = {
     '<rootDir>',
     '<rootDir>../shared',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   roots: ['<rootDir>'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',

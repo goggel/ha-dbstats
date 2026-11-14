@@ -15,7 +15,6 @@ import { Module } from '@nestjs/common';
       ),
       name: 'homeass',
       maxQueryExecutionTime: 1000,
-      keepConnectionAlive: true,
     }),
   ],
   exports: [TypeOrmModule],

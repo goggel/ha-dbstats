@@ -34,6 +34,6 @@ import { SystemModule } from './system/system.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LogRequestsMiddleware).forRoutes('*');
+    consumer.apply(LogRequestsMiddleware).forRoutes('{*path}');
   }
 }

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-node -e 'if (process.versions.node.split(".")[0] !== "22") throw Error("Node 22 required")'
+node -e 'if (process.versions.node.split(".")[0] !== "24") throw Error("Node 24 required")'
 npm --prefix dbstats/app/shared ci
 npm --prefix dbstats/app/shared run build
 npm --prefix dbstats/app/backend ci

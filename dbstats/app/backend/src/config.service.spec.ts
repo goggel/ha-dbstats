@@ -115,6 +115,7 @@ describe('Config Service', () => {
     );
     expect(res.data.typeOrmConfig).toEqual({
       type: 'mysql',
+      connectorPackage: 'mysql2',
       url: 'mysql://root:***@192.168.66.30:5432/homeass?charset=utf8',
       extra: {
         options: '--max_execution_time=180000',
