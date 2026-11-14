@@ -1,50 +1,26 @@
 import type {IShowAlerts} from "@dbstats/shared/src/stats";
 import type {FC} from "react";
-import { useEffect} from "react";
+import {useRequest} from "../../useRequest";
+import type {RequestOptions} from "../../requestQueue";
 import * as React from "react";
-import {Alert, Card, CardContent} from "@mui/material";
+import {Alert, Button} from "@mui/material";
 import {SuspenseLoaderInline} from "../SuspenseLoader";
 
 type AlertSetProps = {
-    api: () => Promise<Array< IShowAlerts >>,
+    api: (options?: RequestOptions) => Promise<Array< IShowAlerts >>,
 }
 
 
 export const AlertSet: FC<AlertSetProps> = ({api}) => {
 
-    const [loading, setLoading] = React.useState(true);
-    const [data, setData] = React.useState(null);
-    const [errorMessageLoad, setErrorMessageLoad] = React.useState('');
-
-
-    function loadStats() {
-
-        const fetchData = async () => {
-            setLoading(true);
-            const response = await api();
-            setData(response);
-            setLoading(false);
-        }
-        fetchData()
-            // make sure to catch any error
-            .catch((err) => setErrorMessageLoad(err.message));
+    const {state, data, error, elapsed, retry} = useRequest(api);
+    if (state === 'error' || state === 'timeout') {
+        return <Alert severity="error">{error}<Button onClick={retry}>Retry</Button></Alert>;
     }
-
-    useEffect(loadStats, []);
-    useEffect(() => {
-        loadStats();
-    }, []);
-    if (errorMessageLoad) {
-        return (
-            <Alert severity="error">{errorMessageLoad}</Alert>)
+    if (state === 'queued' || state === 'loading') {
+        return <div role="status">Alerts: {state} ({elapsed}s)<SuspenseLoaderInline success={false}/></div>;
     }
-    if (loading) {
-        return <SuspenseLoaderInline success={false}></SuspenseLoaderInline>;
-    }
-
-    if (!data.length) {
-        return null;
-    }
+    if (state === 'empty') { return <Alert severity="info">No alerts</Alert>; }
     return (
         <>
                 {

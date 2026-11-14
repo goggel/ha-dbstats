@@ -1,8 +1,9 @@
 import type {FC} from "react";
-import {useEffect} from "react";
+import {useRequest} from "../../useRequest";
+import type {RequestOptions} from "../../requestQueue";
 import * as React from "react";
 import Chart from "react-apexcharts";
-import {Alert} from "@mui/material";
+import {Alert, Button} from "@mui/material";
 import {SuspenseLoaderInline} from "../SuspenseLoader";
 import type {ICountStats} from "@dbstats/shared/src/stats";
 import type {ApexOptions} from "apexcharts";
@@ -10,7 +11,7 @@ import colors from "./colors";
 
 type CountStatesChartProps = {
     title: string,
-    api: () => Promise<Array<ICountStats>>,
+    api: (options?: RequestOptions) => Promise<Array<ICountStats>>,
 }
 
 function thousandFormatter(value: string): string {
@@ -23,17 +24,14 @@ function thousandFormatter(value: string): string {
 
 export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
 
-    const [loading, setLoading] = React.useState(true);
-    const [stats, setStats] = React.useState(null);
-    const [errorMessageLoad, setErrorMessageLoad] = React.useState('');
-
-
-    function loadStats() {
-
-        const fetchData = async () => {
-            setLoading(true);
-            const data = await api();
-
+    const {state: status, data, error, elapsed, retry} = useRequest(api);
+    if (status === 'error' || status === 'timeout') {
+        return <Alert severity="error">{title}: {error}<Button onClick={retry}>Retry</Button></Alert>;
+    }
+    if (status === 'queued' || status === 'loading') {
+        return <div role="status">{title}: {status} ({elapsed}s)<SuspenseLoaderInline success={false}/></div>;
+    }
+    if (status === 'empty') { return <Alert severity="info">{title}: No data</Alert>; }
             const state: { options: ApexOptions, series: ApexAxisChartSeries } = {
                 options: {
                     colors: colors(data.length),
@@ -81,33 +79,13 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                     }
                 ]
             };
-            setStats(state);
-            setLoading(false);
-        }
-        fetchData()
-            // make sure to catch any error
-            .catch((err) => setErrorMessageLoad(err.message));
-    }
-
-    useEffect(loadStats, []);
-    useEffect(() => {
-        loadStats();
-    }, []);
-    if (errorMessageLoad) {
-        return (
-            <Alert style={{marginTop: 25}} severity="error">{errorMessageLoad}</Alert>)
-    }
-    if (loading) {
-        return <SuspenseLoaderInline success={false}></SuspenseLoaderInline>;
-    }
-
     return (
         <Chart style={{marginTop: 25}}
-               options={stats.options}
-               series={stats.series}
+               options={state.options}
+               series={state.series}
                type="bar"
                width="100%"
-               height={stats.series[0].data.length * 45}
+               height={state.series[0].data.length * 45}
         />
     );
 }

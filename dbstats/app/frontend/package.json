@@ -56,7 +56,8 @@
     "format": "prettier --write \"./**/*.{ts,tsx,js,jsx,json}\" --config ./.prettierrc",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "clean": "rimraf dist",
-    "lint:check": "eslint \"src/**/*.{ts,tsx}\""
+    "lint:check": "eslint \"src/**/*.{ts,tsx}\"",
+    "test": "react-app-rewired test --watchAll=false"
   },
   "browserslist": {
     "production": [
@@ -73,6 +74,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@types/autosuggest-highlight": "3.2.0",
+    "@types/jest": "27.5.2",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
     "eslint": "8.44.0",
