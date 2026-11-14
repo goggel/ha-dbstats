@@ -24,8 +24,8 @@ async function main() {
     assert.equal((await capture(observer.query,id)).status,'finished-or-unavailable');
     const output=JSON.stringify(result,null,2);
     assert(!output.includes('password') && !output.includes('SHOW FULL PROCESSLIST') && !output.includes('SELECT SUM'));
-    fs.writeFileSync('test/aggregates/fixture-diagnostic.json',output);
+    fs.writeFileSync(require('node:path').join(require('node:os').tmpdir(),`dbstats-diagnostic-${process.pid}.json`),output);
     console.log('diagnostic: running plan captured; finished/closed threads and allowlist passed');
-  } finally {await observer.close(); if(worker.db.state!=='disconnected') await worker.close();}
+  } finally {await observer.close(); if(!worker.db._closing) await worker.close();}
 }
 main().catch(err=>{console.error(err.code || err.message);process.exitCode=1;});

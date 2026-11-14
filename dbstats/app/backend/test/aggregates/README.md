@@ -3,20 +3,24 @@
 No service SQL is changed. Exact all-history counts still inspect qualifying
 entries; LIMIT limits chart output, not aggregate work. No production speedup
 is established. Candidate SQL is experiment-only and rejected for adoption
-pending representative MariaDB evidence and the plan004 gateway/deadline gate.
+pending representative MariaDB evidence.
 
 ## Disposable commands
 
-Use only container `dbstats-plan005-mariadb-fixture`, MariaDB 11.8, published on
-127.0.0.1:33505, database `dbstats_plan005_fixture`. The runner validates that
-exact host/port/database before opening a socket. Never repoint it to production.
-`AGG_FIXTURE_PASSWORD` is read from the environment and never printed.
+`npm run test:aggregates` starts its own `dbstats-plan005-aggregate-owned`
+MariaDB 11.8 container on 127.0.0.1:33505 with database
+`dbstats_plan005_fixture`, waits for readiness, and removes only that container
+in finally. An existing name is rejected without reuse/deletion. The exact target
+allowlist is checked before connections. Commands and children have deadlines.
+The fixture-only account is disposable; no recorder credentials are read.
 
-From backend: `npm run test:integration` recreates the fixture tables, executes
-unchanged service methods through a repository adapter, checks original SQL
-against fixed expected results, and compares investigation candidates. It also
-checks a running disposable SELECT plan and finished/closed-thread handling.
-This adapter is not a substitute for plan003's real TypeORM runtime bridge.
+Service assertions use real TypeORM DataSource/repositories and QueryGateway,
+including countEventTypes without modifying event.service.ts. Original and
+candidate SQL also execute through the gateway. A native MariaDB timeout
+(errno 1969) must be followed by a healthy query. Diagnostics capture a running
+fixture query and handle finished/closed sessions. The shared test:integration
+runner is preserved; aggregate tests remain a separate focused command because
+their owned Docker lifecycle is a distinct prerequisite.
 
 `npm run bench:aggregates -- --baseline baseline --candidate candidate --output /tmp/aggregate-benchmark.json`
 recreates the small fixture, records server version, schema, actual index column
@@ -26,9 +30,10 @@ and candidate are named built-in variants, never arbitrary SQL files. Warm cache
 fixed baseline-first order and client wall time are documented limitations.
 `--rows 100000` grows states synthetically (maximum one million), preserving the
 edge cases. Neither size is representative of 60 million production rows.
-Ties are normalized by type/count after SQL LIMIT; the fixture has fewer than
-30 labels so there is no ambiguous boundary tie. Large representative tie-boundary
-and cardinality-distribution coverage remains an integration gate.
+A limit of two exercises tied boundary membership for every aggregate, including
+nullable-name counts and equal attribute sizes. Comparison sorts only returned
+rows; it never substitutes different top-N members. A mismatch fails the command.
+Routine benchmark and diagnostic artifacts default to temporary files.
 
 The checked-in fixture-benchmark artifact is a disposable smoke measurement,
 not adoption evidence. No covering index experiment is warranted by it. No
@@ -69,7 +74,7 @@ Attributes retain MariaDB byte LENGTH, shared-payload-per-entity deduplication,
 null-name merging, orphan exclusion, >0.01 MiB filtering and two-decimal rounding.
 PostgreSQL/SQLite SQL is unchanged; their Unicode metric correction belongs to 006.
 
-Deferred: real gateway/deadline execution, plan003 multi-driver integration,
+Deferred: aggregate-specific multi-driver semantic checks (production SQL unchanged),
 representative sanitized fixture distributions and MariaDB runtime rows/loops,
 alternating/cache-controlled timings, and storage/I/O/recorder-write measurements
 if a disposable covering-index experiment becomes justified. No fake cancellation.

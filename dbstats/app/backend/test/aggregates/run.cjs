@@ -23,6 +23,11 @@ async function main() {
     for (const name of names) assert.deepEqual(await query(queries(name).baseline),[]);
     await seed(query);
     await require('./services.cjs').checkServices(query);
+    // A limit inside a tied group must preserve actual membership, not only counts.
+    for (const name of names) {
+      const tied=queries(name,2);
+      assert.deepEqual(normalize(await query(tied.candidate)),normalize(await query(tied.baseline)),`${name}: tied boundary membership`);
+    }
     const targetRows=Number(option('--rows','11'));
     assert(Number.isSafeInteger(targetRows) && targetRows>=11 && targetRows<=1000000);
     let rows=11;
@@ -31,6 +36,7 @@ async function main() {
       await query(`INSERT INTO states(metadata_id,attributes_id,last_updated_ts) SELECT metadata_id,attributes_id,last_updated_ts+? FROM states LIMIT ${batch}`,[rows]);
       rows+=batch;
     }
+    if(targetRows>11) await require('./services.cjs').checkServices(query);
     const actual = await query('SELECT TABLE_NAME t, INDEX_NAME n, COLUMN_NAME c, NON_UNIQUE u FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX');
     for (const [table, definitions] of Object.entries(indexes)) for (const [name, columns] of Object.entries(definitions)) {
       const rows = actual.filter(r=>r.t===table && r.n===name);
@@ -64,12 +70,12 @@ async function main() {
       }
       results.push(record);
     }
-    const artifact = {version, schema:53, fixture:'small semantic fixture; NOT representative of production', cache:'warm; no cache flush; baseline then candidate; five repetitions', indexes:actual, distributions:await query('SELECT metadata_id, COUNT(*) cnt FROM states GROUP BY metadata_id'), results, adoption:'No production rewrite adopted; representative evidence and gateway gate deferred'};
+    const artifact = {version, schema:53, fixture:'small semantic fixture; NOT representative of production', cache:'warm; no cache flush; baseline then candidate; five repetitions', indexes:actual, distributions:await query('SELECT metadata_id, COUNT(*) cnt FROM states GROUP BY metadata_id'), results, adoption:'No production rewrite adopted; representative evidence deferred; gateway fixture checked'};
     if (mode === 'bench') {
-      const output = option('--output','aggregate-benchmark.json');
+      const output = option('--output',require('node:path').join(require('node:os').tmpdir(),`dbstats-aggregate-${process.pid}.json`));
       fs.writeFileSync(output,JSON.stringify(artifact,null,2));
       console.log(`Artifact: ${output}`);
-      if (results.some(r=>r.regression)) process.exitCode=1;
+      if (results.some(r=>r.regression)) {console.log('REJECTED: candidate median regression exceeds unchanged 5% gate');process.exitCode=1;}
     }
     console.log(`${mode}: original baselines, candidate equivalence, HA index order and configuration checks passed`);
   } finally {await close();}
