@@ -12,3 +12,29 @@ Run shared/backend ci and build first. From repository root:
 No immutable mode is used. The old-image probe in runtime-bridge-wal-probe.cjs remains diagnostic only. No plan004 config/YAML refactor is included.
 
 For an intermediate builder-only native diagnostic, set `FIXTURE_IMAGE_NATIVE_ONLY=1 FIXTURE_IMAGE_SQLITE_MODULE=/build/backend/node_modules/sqlite3` when invoking test-image.sh with the builder image ID. The output explicitly excludes final image, entrypoint and ingress acceptance. This subset retains every mounted-readonly data assertion.
+
+Plan 004 gateway extension: after building the backend, `node scripts/test-databases.cjs`
+now also runs the native SQLite gateway probe and starts a third named disposable
+container, `dbstats-plan004-mysql-fixture` (MySQL 8.4, loopback port 33307).
+MariaDB 11.8, MySQL and PostgreSQL use actual recursive/cross-product or
+`generate_series` aggregate work. Tests require native timeout codes, healthy next
+queries, two concurrent sessions, forced pool replacement, no active orphan query,
+and idle pool resource recovery. The SQLite probe repeats real native interruption,
+queues an unrelated healthy read, cancels with AbortSignal, rejects writes and
+checks the fixture hash. Each child has a finite harness timeout. The allowlist
+accepts only these exact disposable endpoints and rejects arbitrary targets.
+
+The gateway validates `DB_QUERY_TIMEOUT` (default 180000 ms),
+`DB_ACQUISITION_TIMEOUT` and `DB_QUEUE_TIMEOUT` (each default 5000 ms),
+`DB_QUERY_CONCURRENCY` (default 4, maximum 32) and `DB_QUERY_MAX_PENDING`
+(default 32, maximum 1024). Durations must be positive integer milliseconds no
+greater than 180000. SQLite concurrency is always one because native interruption
+is connection-wide. All application database queries must use the singleton
+gateway; repositories are used only to construct SQL. Acquisition expiry returns
+a safe timeout while retaining capacity until the driver's pending acquisition
+settles and its runner is released. Native driver connection establishment has
+its own finite timeout. Server cancellation on consumer abort waits for the server
+statement deadline; SQLite abort interrupts immediately. Services currently do not
+forward individual consumer aborts, so one cached-query consumer cannot cancel
+another consumer's work. HTTP/browser/proxy alignment and transport-option mapping
+are separate integration gates.

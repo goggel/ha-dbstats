@@ -1,3 +1,4 @@
+import { QueryGateway } from '../query-gateway';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, IsNull, Not, Repository } from 'typeorm';
@@ -14,6 +15,7 @@ const badRoundFunction = (num) => Math.round(num * 100) / 100;
 @Injectable()
 export class StateService {
   constructor(
+    private readonly gateway: QueryGateway,
     @InjectRepository(States, 'homeass')
     private statesRepository: Repository<States>,
     @InjectRepository(StateAttributes, 'homeass')
@@ -22,18 +24,19 @@ export class StateService {
 
   async countStateTypes(): Promise<Array<ICountStats>> {
     //select m.entity_id, count(1) from states s, states_meta m where s.metadata_id=m.metadata_id group by m.entity_id
-    const data = await this.statesRepository
-      .createQueryBuilder('states')
-      .select('states_meta.entity_id type, count(*) cnt')
-      .innerJoin(
-        StatesMeta,
-        'states_meta',
-        'states.metadata_id=states_meta.metadata_id',
-      )
-      .groupBy('states_meta.entity_id')
-      .orderBy('cnt', 'DESC')
-      .limit(maxRowsInChart)
-      .execute();
+    const data = await this.gateway.select<Array<ICountStats>>(
+      this.statesRepository
+        .createQueryBuilder('states')
+        .select('states_meta.entity_id type, count(*) cnt')
+        .innerJoin(
+          StatesMeta,
+          'states_meta',
+          'states.metadata_id=states_meta.metadata_id',
+        )
+        .groupBy('states_meta.entity_id')
+        .orderBy('cnt', 'DESC')
+        .limit(maxRowsInChart),
+    );
     return data;
   }
 
@@ -43,9 +46,10 @@ from (select distinct state_attributes.attributes_id, states_meta.entity_id from
 where state_attributes.attributes_id=states.attributes_id and states_meta.metadata_id=states.metadata_id) attr2entity, state_attributes a
 where a.attributes_id=attr2entity.attributes_id group by attr2entity.entity_id order by size desc limit ${maxRowsInChart}`;
 
-    const res = (await this.stateAttributesRepository.manager.query(
-      query,
-    )) as Array<{ type: string; size: number }>;
+    const res = (await this.gateway.query(query)) as Array<{
+      type: string;
+      size: number;
+    }>;
     return res
       .filter((el) => el.size > 0.01)
       .map((el) => {

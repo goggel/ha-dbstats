@@ -1,3 +1,4 @@
+import { QueryGateway } from '../query-gateway';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +11,7 @@ import { version } from '../../package.json';
 export class SystemService {
   private logger: Logger;
   constructor(
+    private readonly gateway: QueryGateway,
     @InjectRepository(Statistics, 'homeass')
     private repoLong: Repository<Statistics>,
   ) {
@@ -17,7 +19,7 @@ export class SystemService {
   }
 
   private async getSqliteTables() {
-    return (await this.repoLong.manager.query(
+    return (await this.gateway.query(
       `SELECT name FROM sqlite_master WHERE type='table'`,
     )) as Array<{ name: string }>;
   }
@@ -29,7 +31,7 @@ export class SystemService {
       const tables = await this.getSqliteTables();
       const res = [];
       for (let i = 0; i < tables.length; i++) {
-        const rows = (await this.repoLong.manager.query(
+        const rows = (await this.gateway.query(
           `SELECT count (*) cnt from ${tables[i].name}`,
         )) as Array<{ cnt: number }>;
         res.push({ type: tables[i].name, cnt: rows[0].cnt });
@@ -37,17 +39,16 @@ export class SystemService {
       return res.sort((a, b) => b.cnt - a.cnt);
     }
     if (dbType === 'postgres') {
-      const data = await this.repoLong.manager
-        .query(`SELECT relname type,n_live_tup cnt
+      const data = await this.gateway.query(`SELECT relname type,n_live_tup cnt
               FROM pg_stat_user_tables
             ORDER BY n_live_tup DESC`);
-      return data;
+      return data as Array<ICountStats>;
     }
     if (dbType === 'mysql') {
-      const data = await this.repoLong.manager.query(
+      const data = await this.gateway.query(
         `SELECT table_name type, TABLE_ROWS cnt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = DATABASE() order by TABLE_ROWS DESC`,
       );
-      return data;
+      return data as Array<ICountStats>;
     }
     throw new BadRequestException(
       `Database type ${dbType} not supported yet for this chart`,
@@ -61,7 +62,7 @@ export class SystemService {
       const tables = await this.getSqliteTables();
       const res = [];
       for (let i = 0; i < tables.length; i++) {
-        const rows = (await this.repoLong.manager.query(
+        const rows = (await this.gateway.query(
           `SELECT SUM("pgsize")/1024/1024 cnt FROM "dbstat" WHERE name='${tables[i].name}';`,
         )) as Array<{ cnt: number }>;
         res.push({ type: tables[i].name, cnt: rows[0].cnt });
@@ -69,22 +70,22 @@ export class SystemService {
       return res.sort((a, b) => b.cnt - a.cnt);
     }
     if (dbType === 'postgres') {
-      const data = await this.repoLong.manager.query(`select
+      const data = await this.gateway.query(`select
         table_name type,
             pg_total_relation_size(quote_ident(table_name))/1024/1024 cnt
         from information_schema.tables
         where table_schema = 'public'
         order by pg_total_relation_size(quote_ident(table_name)) desc;`);
-      return data;
+      return data as Array<ICountStats>;
     }
     if (dbType === 'mysql') {
-      const data = await this.repoLong.manager.query(`SELECT 
+      const data = await this.gateway.query(`SELECT
      table_schema as \`Database\`, 
      table_name type, 
      round(((data_length + index_length) / 1024 / 1024), 2) cnt 
 FROM information_schema.TABLES  WHERE table_schema = DATABASE()
 ORDER BY (data_length + index_length) DESC;`);
-      return data;
+      return data as Array<ICountStats>;
     }
     throw new BadRequestException(
       `Database type ${dbType} not supported yet for this chart`,
@@ -94,19 +95,19 @@ ORDER BY (data_length + index_length) DESC;`);
   async getVersion(): Promise<string> {
     const dbType = configProvider().typeOrmConfig.type;
     if (dbType === 'sqlite') {
-      const data = (await this.repoLong.manager.query(
+      const data = (await this.gateway.query(
         `SELECT sqlite_version() as version`,
       )) as Array<{ version: string }>;
       return data[0].version;
     }
     if (dbType === 'postgres') {
-      const data = (await this.repoLong.manager.query(
+      const data = (await this.gateway.query(
         `SELECT VERSION() as version;`,
       )) as Array<{ version: string }>;
       return data[0].version;
     }
     if (dbType === 'mysql') {
-      const data = (await this.repoLong.manager.query(
+      const data = (await this.gateway.query(
         `SELECT VERSION() as version`,
       )) as Array<{ version: string }>;
       return data[0].version;

@@ -1,3 +1,4 @@
+import { QueryGateway } from '../query-gateway';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, IsNull, Not, Repository } from 'typeorm';
@@ -11,6 +12,7 @@ const { maxRowsInChart } = config();
 @Injectable()
 export class EventService {
   constructor(
+    private readonly gateway: QueryGateway,
     @InjectRepository(Events, 'homeass')
     private repo: Repository<Events>,
     @InjectRepository(EventData, 'homeass')
@@ -20,25 +22,32 @@ export class EventService {
   async countEventTypes(): Promise<Array<ICountStats>> {
     //select t.event_type_id, t.event_type, count(*) from event_types t, events e where t.event_type_id=e.event_type_id
     // group by t.event_type, t.event_type_id
-    const data = await this.repo
-      .createQueryBuilder('events')
-      .select('types.event_type type, count(*) cnt')
-      .innerJoin(
-        EventTypes,
-        'types',
-        'types.event_type_id=events.event_type_id',
-      )
-      .groupBy('types.event_type')
-      .orderBy('cnt', 'DESC')
-      .limit(maxRowsInChart)
-      .execute();
+    const data = await this.gateway.select<Array<ICountStats>>(
+      this.repo
+        .createQueryBuilder('events')
+        .select('types.event_type type, count(*) cnt')
+        .innerJoin(
+          EventTypes,
+          'types',
+          'types.event_type_id=events.event_type_id',
+        )
+        .groupBy('types.event_type')
+        .orderBy('cnt', 'DESC')
+        .limit(maxRowsInChart),
+    );
     return data;
   }
 
   async countEventsByDomain(): Promise<Array<ICountStats>> {
     //select t.event_type_id, t.event_type, count(*) from event_types t, events e where t.event_type_id=e.event_type_id
     // group by t.event_type, t.event_type_id
-    const data = (await this.repoEventData.find())
+    const data = (
+      await this.gateway.select<Array<{ sharedData: string }>>(
+        this.repoEventData
+          .createQueryBuilder('event')
+          .select('event.sharedData', 'sharedData'),
+      )
+    )
       .map((item) => JSON.parse(item.sharedData))
       .map((item) => item.domain)
       .filter((el) => el)
