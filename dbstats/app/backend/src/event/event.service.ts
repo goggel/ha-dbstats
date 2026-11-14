@@ -49,11 +49,14 @@ export class EventService {
         if (Number(rows[0].version) < 160000) {
           throw new ServiceUnavailableException({
             code: 'DOMAIN_JSON_COMPATIBILITY',
-            message: 'Safe domain aggregation requires a PostgreSQL compatibility decision',
+            message:
+              'Safe domain aggregation requires a PostgreSQL compatibility decision',
           });
         }
       }
-      return this.gateway.query<Array<ICountStats>>(domainQuery(engine, maxRowsInChart));
+      return this.gateway.query<Array<ICountStats>>(
+        domainQuery(engine, maxRowsInChart),
+      );
     });
   }
 }

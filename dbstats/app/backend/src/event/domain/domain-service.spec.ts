@@ -2,7 +2,7 @@ jest.mock('../../config', () => ({
   __esModule: true,
   default: () => ({ maxRowsInChart: 10 }),
 }));
-import { QueryGateway } from '../../query-gateway';
+import type { QueryGateway } from '../../query-gateway';
 import { EventService } from '../event.service';
 import type { Repository } from 'typeorm';
 import type { Events } from '../../entities/homeass/2024.1.5/Events';
@@ -28,4 +28,23 @@ describe('domain service SQL seam', () => {
     expect(query).toHaveBeenCalledTimes(1);
     expect(find).not.toHaveBeenCalled();
   });
+});
+
+it('gates pre-16 PostgreSQL before parsing payloads or invoking missing primitives', async () => {
+  const query = jest.fn().mockResolvedValue([{ version: '150018' }]);
+  const gateway = {
+    query,
+    runOperation: (work: () => Promise<unknown>) => work(),
+  };
+  const repo = { manager: { connection: { options: { type: 'postgres' } } } };
+  const service = new EventService(
+    gateway as unknown as QueryGateway,
+    repo as unknown as Repository<Events>,
+    {} as Repository<EventData>,
+  );
+  await expect(service.countEventsByDomain()).rejects.toMatchObject({
+    response: { code: 'DOMAIN_JSON_COMPATIBILITY' },
+  });
+  expect(query).toHaveBeenCalledTimes(1);
+  expect(query.mock.calls[0][0]).toContain('server_version_num');
 });

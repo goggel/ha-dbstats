@@ -38,8 +38,8 @@ export function domainQuery(engine: string, limit: number): string {
       engine === 'postgres'
         ? 'octet_length(domain)'
         : engine === 'sqlite'
-        ? 'length(CAST(domain AS BLOB))'
-        : 'OCTET_LENGTH(domain)'
+          ? 'length(CAST(domain AS BLOB))'
+          : 'OCTET_LENGTH(domain)'
     } > 0
     GROUP BY ${key}
     ORDER BY cnt DESC, ${key} ASC LIMIT ${limit}`;
