@@ -1,12 +1,10 @@
 import { join } from 'path';
-import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import config from './config';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { LogRequestsMiddleware } from './middleware/log-requests-middleware.service';
 import { DatabaseModule } from './database.module';
 import { EventModule } from './event/event.module';
 import { StateModule } from './state/state.module';
@@ -32,8 +30,4 @@ import { SystemModule } from './system/system.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LogRequestsMiddleware).forRoutes('{*path}');
-  }
-}
+export class AppModule {}

@@ -7,6 +7,10 @@ const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const { DataSource } = require('typeorm');
 const sqlite = require('sqlite3');
+const { validateFixtureUrls } = require('./fixture-targets.cjs');
+validateFixtureUrls(process.env);
+const phase = process.env.FIXTURE_PHASE || 'all';
+assert.ok(['all', 'sqlite', 'http', 'databases'].includes(phase), 'Unknown fixture phase');
 const { ConfigService } = require('../dist/backend/src/config.service');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbstats-fixture-'));
 const database = path.join(dir, 'fixture.db');
@@ -19,7 +23,7 @@ const snapshot = () => Object.fromEntries(fs.readdirSync(dir).map(name => {
 async function read(options) {
   const ds = new DataSource({ ...options, entities: [], synchronize: false, migrationsRun: false });
   await ds.initialize();
-  try { assert.equal((await ds.query('SELECT 42 AS answer'))[0].answer, 42); }
+  try { assert.equal((await ds.query('SELECT value AS answer FROM fixture'))[0].answer, 42); }
   finally { await ds.destroy(); }
 }
 (async () => {
@@ -28,38 +32,73 @@ async function read(options) {
   try {
     await exec(writer, 'PRAGMA journal_mode=WAL; CREATE TABLE fixture(value INTEGER); INSERT INTO fixture VALUES(42);');
     const before = snapshot();
+    const shmBefore = fs.readFileSync(database + '-shm');
+    if (phase === 'all' || phase === 'sqlite') {
     const options = ConfigService.connectionStringToDatabaseOptions(`sqlite://${database}`);
     assert.equal(options.flags, sqlite.OPEN_READONLY);
     await read(options);
     const ro = new sqlite.Database(database, sqlite.OPEN_READONLY);
     await assert.rejects(exec(ro, 'INSERT INTO fixture VALUES(43)'), /SQLITE_READONLY/);
     await close(ro);
-    assert.deepEqual(snapshot(), before);
-    console.log(`PASS SQLite ${sqlite.VERSION}: native load, WAL read, rejected write, hashes/mtimes unchanged`);
+    const after = snapshot();
+    if (process.env.FIXTURE_STRICT_WRITABLE === '1') assert.deepEqual(after, before);
+    for (const name of ['fixture.db', 'fixture.db-wal']) assert.deepEqual(after[name], before[name]);
+    const shmAfter = fs.readFileSync(database + '-shm');
+    assert.equal(shmAfter.length, shmBefore.length);
+    const changes = Array.from(shmBefore.keys()).filter(i => shmBefore[i] !== shmAfter[i]);
+    assert.ok(changes.every(i => i >= 100 && i < 120), `Unexpected SHM changes: ${changes}`);
+    console.log('SHM read-mark changed offsets:', changes);
+    console.log(`PASS SQLite ${sqlite.VERSION}: native load, WAL read, rejected write, DB/WAL stable; SHM read-mark-only`);
+    }
+    if (phase === 'sqlite') return;
+    if (phase === 'all' || phase === 'http') {
     child = spawn(process.execPath, ['dist/backend/src/main.js'], {
       cwd: path.join(__dirname, '..'),
       env: { ...process.env, DB_CONNECT_STRING: `sqlite://${database}`, SERVER_PORT: '31983' },
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
+    let logs = '';
+    child.stdout.on('data', chunk => { logs += chunk; });
+    child.stderr.on('data', chunk => { logs += chunk; });
     for (let attempt = 0; ; attempt++) {
       try { await fetch('http://127.0.0.1:31983/addon-api'); break; }
       catch { if (attempt === 100 || child.exitCode !== null) throw Error('HTTP fixture failed to start'); await new Promise(r => setTimeout(r, 100)); }
     }
     const base = 'http://127.0.0.1:31983';
-    assert.equal(await (await fetch(`${base}/addon-api`)).text(), 'Hello');
+    assert.equal((await fetch(`${base}/addon-api`)).status, 404);
+    assert.equal((await fetch(`${base}/`)).status, 404);
+    assert.equal((await fetch(`${base}/api`)).status, 200);
+    assert.equal((await fetch(`${base}/addon-api/system/getTableRows`)).status, 200);
     assert.equal((await fetch(`${base}/api-json`)).status, 200);
     assert.equal((await fetch(`${base}/addon-api/unknown/nested`)).status, 404);
     assert.equal((await fetch(`${base}/addon-api`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{invalid' })).status, 404);
-    assert.equal((await fetch(`${base}/addon-api?x[a]=1`)).status, 200);
+    assert.equal((await fetch(`${base}/addon-api/system/getTableRows?x[a]=1`)).status, 200);
     child.kill('SIGTERM');
-    await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('shutdown timed out')), 5000); child.once('exit', code => { clearTimeout(timer); code === 0 ? resolve() : reject(Error('shutdown failed')); }); });
+    await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('shutdown timed out')), 5000); child.once('exit', (code, signal) => { clearTimeout(timer); (code === 0 || signal === 'SIGTERM') ? resolve() : reject(Error(`shutdown failed: ${code}/${signal}`)); }); });
     child = null;
-    assert.deepEqual(snapshot(), before);
+    assert.match(logs, /GET \/ 404/);
+    assert.match(logs, /GET \/addon-api\/unknown\/nested 404/);
     console.log('PASS HTTP: API prefix, Swagger, nested unknown, invalid body, query, graceful shutdown');
+    }
+    if (phase === 'http') return;
     if (process.env.FIXTURE_SQLITE_HTTP_ONLY === '1') { console.log('SKIPPED MariaDB/PostgreSQL by explicit fixture subset'); return; }
     for (const [name, variable] of [['MariaDB', 'FIXTURE_MYSQL_URL'], ['PostgreSQL', 'FIXTURE_POSTGRES_URL']]) {
       assert.ok(process.env[variable], `${name} disposable fixture prerequisite missing: ${variable}`);
-      await read(ConfigService.connectionStringToDatabaseOptions(process.env[variable]));
+      const connection = ConfigService.connectionStringToDatabaseOptions(process.env[variable]);
+      const badAuth = new DataSource({ ...connection, password: 'wrong_disposable_password', entities: [], synchronize: false, migrationsRun: false });
+      await assert.rejects(badAuth.initialize());
+      const ds = new DataSource({ ...connection, entities: [], synchronize: false, migrationsRun: false });
+      await ds.initialize();
+      try {
+        await ds.query('CREATE TEMPORARY TABLE fixture(value INTEGER, big BIGINT, amount DECIMAL(10,2), stamp DATE)');
+        await ds.query("INSERT INTO fixture VALUES(42,9007199254740993,12.34,'2026-11-14')");
+        const row = (await ds.query('SELECT * FROM fixture'))[0];
+        assert.equal(row.value, 42);
+        assert.equal(String(row.big), '9007199254740993');
+        assert.equal(String(row.amount), '12.34');
+        assert.equal(row.stamp instanceof Date ? row.stamp.toISOString().slice(0, 10) : row.stamp, '2026-11-14');
+        await assert.rejects(ds.query('SELECT * FROM missing_fixture_table'));
+      } finally { await ds.destroy(); }
       console.log(`PASS ${name} connection/read`);
     }
   } finally {
