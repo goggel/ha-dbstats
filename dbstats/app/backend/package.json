@@ -30,7 +30,8 @@
     "lint:check": "eslint \"src/**/*.ts\"",
     "test:integration": "node test/integration.cjs",
     "test:aggregates": "node test/aggregates/fixture.cjs test",
-    "bench:aggregates": "node test/aggregates/fixture.cjs bench"
+    "bench:aggregates": "node test/aggregates/fixture.cjs bench",
+    "test:domain:drivers": "node test/domain/app-drivers.cjs"
   },
   "dependencies": {
     "@nestjs/common": "11.2.10",
