@@ -147,19 +147,35 @@ it('redacts malformed secrets files and missing keys after another secret resolv
   ).not.toContain('CANARY_SECRET');
 });
 
-it.each(['env_var', 'input', 'secret'])('keeps unrelated !%s lazy with default SQLite', (tag) => {
-  write('configuration.yaml', `sensor: !${tag} UNRELATED_SENSOR`);
-  write('home-assistant_v2.db', 'fixture');
-  expect(config()).toMatchObject({ type: 'sqlite' });
-});
+it.each(['env_var', 'input', 'secret'])(
+  'keeps unrelated !%s lazy with default SQLite',
+  (tag) => {
+    write('configuration.yaml', `sensor: !${tag} UNRELATED_SENSOR`);
+    write('home-assistant_v2.db', 'fixture');
+    expect(config()).toMatchObject({ type: 'sqlite' });
+  },
+);
 it('resolves homeassistant include containing packages', () => {
-  write('configuration.yaml', 'homeassistant: !include home.yaml');
-  write('home.yaml', 'packages:\n  database:\n    recorder:\n      db_url: postgres://package/db');
-  expect(config().url).toBe('postgresql://package/db');
+  write(
+    'configuration.yaml',
+    'recorder:\n  db_url: postgres://main/db\nhomeassistant: !include home.yaml',
+  );
+  write(
+    'home.yaml',
+    'packages:\n  database:\n    recorder:\n      db_url: postgres://package/db',
+  );
+  expect(() => config()).toThrow(/CONFIG_RECORDER_DUPLICATE/);
 });
 it('rejects canonical directory symlink cycles', () => {
-  write('configuration.yaml', 'homeassistant:\n  packages: !include_dir_named packages');
+  write(
+    'configuration.yaml',
+    'homeassistant:\n  packages: !include_dir_named packages',
+  );
   write('packages/one.yaml', 'sensor: []');
-  fs.symlinkSync(path.join(dir, 'packages'), path.join(dir, 'packages/loop'), 'dir');
+  fs.symlinkSync(
+    path.join(dir, 'packages'),
+    path.join(dir, 'packages/loop'),
+    'dir',
+  );
   expect(() => config()).toThrow(/CONFIG_INCLUDE_CYCLE/);
 });

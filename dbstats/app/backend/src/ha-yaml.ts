@@ -59,9 +59,13 @@ export class HaYaml {
     }
   }
 
-  private files(dir: string): string[] {
+  private files(dir: string, stack: string[] = []): string[] {
     if (!fs.existsSync(dir)) {
       return [];
+    }
+    const canonical = fs.realpathSync(dir);
+    if (stack.includes(canonical)) {
+      throw new ConfigurationError('CONFIG_INCLUDE_CYCLE', dir);
     }
     const entries = fs
       .readdirSync(dir)
@@ -70,10 +74,10 @@ export class HaYaml {
     return entries.flatMap((n) => {
       const file = path.join(dir, n);
       return fs.statSync(file).isDirectory()
-        ? this.files(file)
+        ? this.files(file, [...stack, canonical])
         : n.endsWith('.yaml') && n !== 'secrets.yaml'
-        ? [file]
-        : [];
+          ? [file]
+          : [];
     });
   }
 
@@ -167,11 +171,12 @@ export class HaYaml {
       }
     };
     collect(config);
+    const homeassistant = this.resolve(config.homeassistant, [file]);
     if (
-      mapping(config.homeassistant) &&
-      Object.prototype.hasOwnProperty.call(config.homeassistant, 'packages')
+      mapping(homeassistant) &&
+      Object.prototype.hasOwnProperty.call(homeassistant, 'packages')
     ) {
-      const packages = this.resolve(config.homeassistant.packages, [file]);
+      const packages = this.resolve(homeassistant.packages, [file]);
       if (!mapping(packages)) {
         throw new ConfigurationError('CONFIG_PACKAGES_INVALID', file);
       }
@@ -182,6 +187,9 @@ export class HaYaml {
     if (!candidates.length) {
       const seen = new Set<unknown>();
       const legacy = (node: unknown) => {
+        if (node instanceof Tag && !node.kind.startsWith('include')) {
+          return;
+        }
         node = this.resolve(node, [file]);
         if (!mapping(node) || seen.has(node)) {
           return;
