@@ -28,7 +28,9 @@
     "migrate:up": "npm run typeorm migration:run",
     "migrate:down": "npm run typeorm migration:revert",
     "lint:check": "eslint \"src/**/*.ts\"",
-    "test:integration": "node test/integration.cjs"
+    "test:integration": "node test/integration.cjs",
+    "test:aggregates": "node test/aggregates/fixture.cjs test",
+    "bench:aggregates": "node test/aggregates/fixture.cjs bench"
   },
   "dependencies": {
     "@nestjs/common": "11.2.10",
