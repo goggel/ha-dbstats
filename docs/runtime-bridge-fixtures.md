@@ -10,3 +10,5 @@ Run shared/backend ci and build first. From repository root:
 - `sh scripts/test-image.sh <image>`: bounded direct Podman checks exact Node/native versions, actual table read with readonly bind of DB/WAL/SHM, EROFS on each file, INSERT rejection, full hashes/mtimes; inventory and entrypoint/backend/ingress checks. Needs backend sqlite3 installed on host. Run separately for amd64/aarch64 artifacts. Full s6/nginx initialization needs Supervisor API configuration; standalone initialization failure must be reported, never counted as ingress success.
 
 No immutable mode is used. The old-image probe in runtime-bridge-wal-probe.cjs remains diagnostic only. No plan004 config/YAML refactor is included.
+
+For an intermediate builder-only native diagnostic, set `FIXTURE_IMAGE_NATIVE_ONLY=1 FIXTURE_IMAGE_SQLITE_MODULE=/build/backend/node_modules/sqlite3` when invoking test-image.sh with the builder image ID. The output explicitly excludes final image, entrypoint and ingress acceptance. This subset retains every mounted-readonly data assertion.

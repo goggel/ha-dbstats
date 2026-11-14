@@ -89,8 +89,11 @@ async function read(options) {
     for (const [name, variable] of [['MariaDB', 'FIXTURE_MYSQL_URL'], ['PostgreSQL', 'FIXTURE_POSTGRES_URL']]) {
       assert.ok(process.env[variable], `${name} disposable fixture prerequisite missing: ${variable}`);
       const connection = ConfigService.connectionStringToDatabaseOptions(process.env[variable]);
-      const badAuth = new DataSource({ ...connection, password: 'wrong_disposable_password', entities: [], synchronize: false, migrationsRun: false });
-      await assert.rejects(badAuth.initialize());
+      const rejectedUrl = new URL(connection.url);
+      rejectedUrl.password = 'wrong_disposable_password';
+      const badAuth = new DataSource({ ...connection, url: rejectedUrl.href, entities: [], synchronize: false, migrationsRun: false });
+      try { await assert.rejects(badAuth.initialize()); }
+      finally { if (badAuth.isInitialized) await badAuth.destroy(); }
       const ds = new DataSource({ ...connection, entities: [], synchronize: false, migrationsRun: false });
       await ds.initialize();
       try {
