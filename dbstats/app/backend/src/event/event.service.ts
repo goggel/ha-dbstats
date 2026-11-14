@@ -1,12 +1,13 @@
 import { QueryGateway } from '../query-gateway';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, IsNull, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Events } from '../entities/homeass/2024.1.5/Events';
 import { EventTypes } from '../entities/homeass/2024.1.5/EventTypes';
 import type { ICountStats } from '@dbstats/shared/src/stats';
 import { EventData } from '../entities/homeass/2024.1.5/EventData';
 import config from '../config';
+import { domainQuery } from './domain/domain-query';
 
 const { maxRowsInChart } = config();
 @Injectable()
@@ -39,30 +40,20 @@ export class EventService {
   }
 
   async countEventsByDomain(): Promise<Array<ICountStats>> {
-    //select t.event_type_id, t.event_type, count(*) from event_types t, events e where t.event_type_id=e.event_type_id
-    // group by t.event_type, t.event_type_id
-    const data = (
-      await this.gateway.select<Array<{ sharedData: string }>>(
-        this.repoEventData
-          .createQueryBuilder('event')
-          .select('event.sharedData', 'sharedData'),
-      )
-    )
-      .map((item) => JSON.parse(item.sharedData))
-      .map((item) => item.domain)
-      .filter((el) => el)
-      .reduce((acc, res) => {
-        if (!acc[res]) {
-          acc[res] = 0;
+    return this.gateway.runOperation(async () => {
+      const engine = this.repo.manager.connection.options.type;
+      if (engine === 'postgres') {
+        const rows = await this.gateway.query<Array<{ version: string }>>(
+          "SELECT current_setting('server_version_num') AS version",
+        );
+        if (Number(rows[0].version) < 160000) {
+          throw new ServiceUnavailableException({
+            code: 'DOMAIN_JSON_COMPATIBILITY',
+            message: 'Safe domain aggregation requires a PostgreSQL compatibility decision',
+          });
         }
-        acc[res]++;
-        return acc;
-      }, {});
-    return Object.keys(data)
-      .sort((a, b) => data[b] - data[a])
-      .slice(0, maxRowsInChart)
-      .map((key) => {
-        return { type: key, cnt: data[key] };
-      });
+      }
+      return this.gateway.query<Array<ICountStats>>(domainQuery(engine, maxRowsInChart));
+    });
   }
 }
