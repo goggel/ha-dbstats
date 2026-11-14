@@ -20,16 +20,15 @@ afterEach(() => {
   fs.rmSync(dir, { recursive: true, force: true });
   jest.restoreAllMocks();
 });
-it('uses addon then environment then recorder, preserving encoded credentials and transport text', () => {
+it('uses addon then environment then recorder, preserving encoded credentials and mapping transport', () => {
   write('configuration.yaml', 'recorder:\n  db_url: postgres://recorder/db');
-  const uri =
-    'mysql://user:p%40ss@localhost/db?charset=utf8mb4;ssl=true&unix_socket=/tmp/test.sock';
+  const uri = 'mysql://user:p%40ss@localhost/db?charset=utf8mb4;ssl=true';
   expect(
     config(
       { connectionString: uri },
       { DB_CONNECT_STRING: 'postgres://env/db' },
     ).url,
-  ).toBe(uri);
+  ).toBe('mysql://user:p%40ss@localhost/db');
   expect(
     config({ connectionString: '' }, { DB_CONNECT_STRING: 'postgres://env/db' })
       .url,

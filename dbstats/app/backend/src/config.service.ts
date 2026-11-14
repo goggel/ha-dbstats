@@ -5,7 +5,7 @@ import type { DataSourceOptions } from 'typeorm';
 import { Injectable, Logger } from '@nestjs/common';
 import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import type { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
-import type { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
+import { mysqlTransport } from './mysql-transport';
 
 type DBType = DataSourceOptions['type'];
 
@@ -162,15 +162,7 @@ postgresql://@/DB_NAME?host=/path/to/dir
       return options;
     }
     if (dbType === 'mysql') {
-      const options: MysqlConnectionOptions = {
-        type: 'mysql',
-        connectorPackage: 'mysql2',
-        url: `mysql://${dbConnectString.split('://')[1]}`,
-        extra: {
-          options: `--max_execution_time=${queryTimeout}`,
-        },
-      };
-      return options;
+      return mysqlTransport(dbConnectString);
     }
     throw new Error(`Unknown database type ${dbType}`);
   }
