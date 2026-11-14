@@ -50,7 +50,7 @@ export class EventService {
           throw new ServiceUnavailableException({
             code: 'DOMAIN_JSON_COMPATIBILITY',
             message:
-              'Safe domain aggregation requires a PostgreSQL compatibility decision',
+              'The event-domain chart requires PostgreSQL 16 or newer. Other charts remain available.',
           });
         }
       }

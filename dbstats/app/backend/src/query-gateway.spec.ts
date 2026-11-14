@@ -21,7 +21,9 @@ describe('QueryGateway lifecycle', () => {
     }
     expect(queryBudgetsFromEnv({})).toEqual(defaultQueryBudgets);
     expect(defaultQueryBudgets.concurrency).toBe(1);
-    expect(() => queryBudgetsFromEnv({ DB_QUEUE_TIMEOUT: '180000' })).toThrow('Combined');
+    expect(() => queryBudgetsFromEnv({ DB_QUEUE_TIMEOUT: '180000' })).toThrow(
+      'Combined',
+    );
   });
   it.each([NaN, Infinity, 0, -1, 1.5, 180001])(
     'rejects invalid finite execution budget %s',

@@ -43,7 +43,11 @@ it('gates pre-16 PostgreSQL before parsing payloads or invoking missing primitiv
     {} as Repository<EventData>,
   );
   await expect(service.countEventsByDomain()).rejects.toMatchObject({
-    response: { code: 'DOMAIN_JSON_COMPATIBILITY' },
+    response: {
+      code: 'DOMAIN_JSON_COMPATIBILITY',
+      message:
+        'The event-domain chart requires PostgreSQL 16 or newer. Other charts remain available.',
+    },
   });
   expect(query).toHaveBeenCalledTimes(1);
   expect(query.mock.calls[0][0]).toContain('server_version_num');
