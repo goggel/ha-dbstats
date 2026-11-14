@@ -1,15 +1,15 @@
-# Jehy's Home Assistant add-on repository
+# goggel's Home Assistant add-on repository
 
-Here are HA addons by Jehy
+Fork of the HA add-ons by Jehy, maintained by goggel.
 
-[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fjehy%2Fhass-addons)
+[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fgoggel%2Fha-dbstats)
 
 ## Repository installation
 
 Press the button, or
 1. Navigate to addons page on your HA instalaiton
 2. Press three dots in the top right corner
-3. Add repository https://github.com/jehy/hass-addons to addon repositories
+3. Add repository https://github.com/goggel/ha-dbstats to addon repositories
 4. Install addon from addons page
 5. Start addon and visit it's page
 

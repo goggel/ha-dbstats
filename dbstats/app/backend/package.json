@@ -27,7 +27,8 @@
     "migrate:generate": "npm run typeorm migration:generate -n",
     "migrate:create": "npm run typeorm migration:create -n",
     "migrate:up": "npm run typeorm migration:run",
-    "migrate:down": "npm run typeorm migration:revert"
+    "migrate:down": "npm run typeorm migration:revert",
+    "lint:check": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
     "@nestjs/common": "10.4.4",

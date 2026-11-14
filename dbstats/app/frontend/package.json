@@ -55,7 +55,8 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"./**/*.{ts,tsx,js,jsx,json}\" --config ./.prettierrc",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "lint:check": "eslint \"src/**/*.{ts,tsx}\""
   },
   "browserslist": {
     "production": [

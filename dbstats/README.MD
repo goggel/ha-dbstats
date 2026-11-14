@@ -21,12 +21,12 @@ Addon will try to autodetect your database options, but if it fails, you can use
 
 ## Installation on HAOS/supervised
 
-Navigate to the [main repository page](https://github.com/jehy/hass-addons/tree/master)
+Navigate to the [main repository page](https://github.com/goggel/ha-dbstats/tree/main)
 and push the button to add it to HA, or add it manually:
 
 1. Navigate to addons page on your HA installation
 2. Press three dots in the top right corner
-3. Add repository `https://github.com/jehy/hass-addons` to addon repositories
+3. Add repository `https://github.com/goggel/ha-dbstats` to addon repositories
 4. Install addon from addons page
 5. Start addon and visit its page
 

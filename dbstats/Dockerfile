@@ -1,5 +1,6 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/base-nodejs:0.2.5
 FROM node:22-alpine AS app-build
+RUN apk add --no-cache python3 make g++
 WORKDIR /build
 COPY app/shared/package.json app/shared/package-lock.json app/shared/.npmrc app/shared/.eslintrc.js app/shared/.prettierrc app/shared/tsconfig.json shared/
 COPY app/shared/src/ shared/src/
