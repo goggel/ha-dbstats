@@ -17,129 +17,63 @@ The service uses the singleton QueryGateway and one operation context, including
 the PostgreSQL capability check. countEventTypes remains unchanged.
 No snapshot/cache/admission changes are included.
 
-PostgreSQL uses pg_input_is_valid, requiring PostgreSQL 16 or newer. Older
-PostgreSQL compatibility remains a STOP gate: safely validating malformed text
-on older versions needs another strategy. Do not claim general PostgreSQL
-compatibility or ship this checkpoint until that requirement is resolved.
+PostgreSQL 16 or newer is required for the event-domain chart only, as authorized
+2026-11-15. Older PostgreSQL returns HTTP 503 with stable code
+DOMAIN_JSON_COMPATIBILITY and a clear unsupported-version message. General
+PostgreSQL support and all other charts remain available. MariaDB, MySQL and
+SQLite are unaffected. PostgreSQL jsonb validation excludes escaped NUL and lone
+surrogates, including those outside the domain, to prevent extraction errors.
 
-Run from any directory:
+Run `npm run test:domain:drivers` after backend build. The runner uses native
+application drivers, fixed named disposable containers and localhost ports,
+readonly application connections, bounded deadlines and ownership cleanup.
+Container errors report only operation, exit status, signal and timeout/code;
+command arguments, SQL and connection URIs are never printed.
 
-    python3 /absolute/path/to/backend/test/domain/run-engines.py
+Reviewer verification passed focused SQLite/MariaDB/MySQL/PostgreSQL 16
+assertions, but the full runner exited before PG15 with an opaque fixture
+command error. That review did not establish a passing full matrix. Composed
+validation is recorded separately after rerunning the complete runner.
 
-The standalone runner needs existing backend dependencies, Python SQLite JSON1,
-and the rootless podman-machine-default connection. It creates only fixed named
-dbstats-domain-006a containers, exposes no host ports, validates the fixture
-container/database allowlist before connecting, and removes those containers.
-Existing names cause creation to fail, rather than deleting another fixture.
-SQLite setup uses a named temporary fixture; query connections use mode=ro.
-No TypeORM synchronization or migrations run. No application connection settings
-or recorder database are used. Engine assertions exercise shared references
-(100 -> 100), invalid/missing/nonstring/null payloads, orphan/null IDs,
-unreferenced payloads, Unicode, case/space ties, limit and empty tables.
+Checkpoint B (snapshots/cache) and final image/platform/HA ingress validation
+remain separate and are not authorized by this source checkpoint.
 
-Verification in isolated checkout (2026-11-14)
--------------------------------------------
+Composed source validation (2026-11-15)
+---------------------------------------
 
-- `npm --prefix dbstats/app/backend test -- --runInBand`: 3 suites, 18 tests pass.
-- Backend `run build`: pass. `run lint:check`: zero errors, 20 existing warnings.
-- `test:integration`: unavailable (script absent at required base).
-- Standalone fixture runner: SQLite 3.54.0, MariaDB 11.8.9, MySQL 8.4.13,
-  PostgreSQL 16.16 all pass. This verifies actual SQL engines, not the pending
-  TypeORM runtime bridge. PostgreSQL before 16 was unverified in that original run.
-- Native sqlite3 binding unavailable after dependency install with ignore-scripts;
-  SQLite SQL was exercised through Python in readonly mode, not the app driver.
-- Default rootful Podman probe timed out; rootless connection worked. No other
-  executor's fixture containers were accessed or changed.
-- No frontend tests/build: checkpoint A changes no frontend. No cache tests:
-  checkpoint B is outside scope. Final 003 runtime and 004 gateway/deadline
-  integration are pending. This is a STOPPED checkpoint, not full 006 completion.
+Base: 13c6fac987cdb819e6ec1f43e372a39e7f6ab6d0 (005), with the five
+domain commits through 605cf9fb8b67d39a1fce1030d132d6fc7f125903 composed.
+Node v24.22.1; npm ci used existing lockfiles without upgrades.
 
-The service test initially imported real config and failed without /homeassistant;
-its fixture now supplies config via Jest mock. Lint then required type-only imports
-in that test; corrected. Production dependencies/locks and shared runners remain
-unchanged. No production data or schema changes were made.
-
-App-driver integration revision (2026-11-15)
------------------------------------------
-
-The earlier verification section is historical. The current domain service has
-no repository.query or payload hydration fallback. PostgreSQL 16+ validates
-jsonb before any cast/extraction. This excludes payloads containing escaped NUL,
-lone surrogates (even outside domain), or other values jsonb cannot represent.
-Valid escaped Unicode pairs aggregate with their literal Unicode equivalent.
-This conservative exclusion prevents extraction errors; it does not convert
-actual database query errors to empty success.
-
-Compatibility blocker: existing project docs name PostgreSQL without a minimum
-major version. No support-policy narrowing is approved. PostgreSQL 15 supports
-JSON extraction only after a potentially throwing text-to-JSON cast; jsonpath
-error suppression does not protect that initial cast. PostgreSQL 16 introduced
-pg_input_is_valid. No equivalent safe pre-16 expression has been established
-within this SQL-only, no-DDL, no-payload-transfer scope. A regex is not a JSON
-validator. A stored exception-catching function would require prohibited DDL;
-Node parsing all payloads would violate bounded transfer. Thus pre-16 receives
-explicit DOMAIN_JSON_COMPATIBILITY (503) before domain SQL, under the same
-operation deadline, rather than an opaque missing-function error. This is a
-visible unresolved compatibility gate, not a declaration that pre-16 support
-has been removed. Checkpoint A remains STOPPED pending a compatible strategy
-or an authorized product support decision.
-
-Official references consulted:
-- https://www.postgresql.org/docs/15/functions-json.html
-- https://www.postgresql.org/docs/16/release-16.html
-- https://www.postgresql.org/docs/16/functions-info.html
-- https://www.postgresql.org/docs/16/datatype-json.html
-
-Run the focused app-driver fixture after backend build:
-
-    npm --prefix dbstats/app/backend run test:domain:drivers
-
-The runner uses only fixed localhost ports 33618/33684/35616/35615, database
-`dbstats_domain_006a`, and containers `dbstats-domain-app-006a-<port>` on rootless
-Podman. It accepts no external URLs. Existing names fail creation and are never
-removed. Setup writes use separate connections, never ORM synchronization or
-migrations. Application connections use SELECT-only MySQL/MariaDB accounts,
-PostgreSQL default read-only transactions, and native SQLite OPEN_READONLY with
-a live WAL writer. No shared integration runner or dependency graph is changed.
-A global 240-second watchdog and 30-second subprocess bounds limit the runner.
-Owned containers and temporary SQLite files are removed on completion/failure.
-
-Fixtures cover 100 references -> 100, shared/unreferenced/orphan/null data,
-malformed/missing/null/nonstring/empty domains, Unicode/escaped Unicode,
-case/space/empty table, deterministic ties and limit, a referenced 1 MiB payload
-with aggregate output under 1 KiB, raw number/string driver count types,
-execution timeout/recovery, PostgreSQL escaped NUL/lone surrogate rejection,
-and an actual PostgreSQL 15 explicit compatibility error. The transfer bound
-is rows and tested payload exclusion; individual valid domain string lengths
-remain recorder-controlled, not an imposed byte cap.
-
-Final local checks for this revision
-------------------------------------
-
-- Node v24.22.1; dependencies installed with npm ci, no upgrades/lock changes.
 - Backend `test -- --runInBand`: 7 suites, 66 tests passed.
-- Backend `run build`: passed.
-- `node test/domain/app-drivers.cjs`: passed native SQLite 3.52.0,
-  MariaDB 11.8, MySQL 8.4, PostgreSQL 16; PostgreSQL 15 compatibility gate passed.
-  SQLite returned number counts; all three server drivers returned string counts.
-- Backend `FIXTURE_SQLITE_HTTP_ONLY=1 npm run test:integration`: passed SQLite
-  WAL/native readonly and HTTP subset. Full shared server integration was not
-  rerun: its separate named external fixtures were not configured. Domain
-  server-driver coverage above is independent and complete for this runner.
-- Frontend `test -- --runInBand`: 2 suites, 21 tests passed; `run build` passed.
-- Domain scoped ESLint (`eslint 'src/event/**/*.ts'`): zero errors, one existing
-  controller warning. Full `lint:check`: fails on one pre-existing Prettier
-  error at query-gateway.spec.ts:24 (confirmed present at e87eaaa), plus 28
-  existing warnings. No unrelated gateway test formatting changed.
-- `git diff --check e87eaaa HEAD`: passed; fixture containers removed.
-- The first larger-payload fixture run failed ER_DATA_TOO_LONG because the
-  fixture used TEXT; reassessment identified the mismatch with recorder LONGTEXT.
-  After using LONGTEXT for MySQL/MariaDB, the entire matrix passed with 1 MiB
-  referenced payloads, SELECT-only reader accounts and readonly PG transactions.
-- No final image rebuild, platform checks, HA ingress, production connections,
-  push, PR, deployment, cache/status/UI/size work or 005 fixture edits performed.
+- Backend `run build`: passed; `run lint:check`: zero errors, 28 warnings.
+  The inherited gateway test formatting required only a line wrap.
+- Frontend `test -- --runInBand`: 2 suites, 21 tests passed;
+  `run build` and `run lint:check`: passed.
+- Backend `run test:aggregates`: passed owned MariaDB baseline/candidate
+  equivalence, HA index/config checks, and diagnostic lifecycle/allowlist checks.
+  Aggregate SQL and tests were preserved.
+- `CONTAINER_CONNECTION=podman-machine-default node scripts/test-databases.cjs`:
+  exit 0, full named native SQLite/WAL/readonly, HTTP routing/validation,
+  MariaDB/PostgreSQL connections, HTTP deadline/following-metric progress,
+  and MariaDB/MySQL/PostgreSQL cancellation/replacement/resource assertions.
+- Backend `run test:domain:drivers`: exit 0, complete native SQLite,
+  MariaDB 11.8, MySQL 8.4, PostgreSQL 16 and PostgreSQL 15 matrix. Checks cover
+  100 references, Unicode/adversarial JSON, bounded rows, timeout/recovery,
+  empty input, and PG15's explicit version message followed by a successful
+  event-type service metric through its real repository and singleton gateway.
+- `git diff --check`: passed. Task-created containers removed; no existing
+  container was reused or removed. No application image was rebuilt.
 
-Remaining gates: safe pre-16 PostgreSQL compatibility/product decision; full
-shared server integration rerun if required for composed release; existing
-repository lint failure; final image/platform/HA ingress validation. No shipping
-or full checkpoint-A completion claim is made.
+Diagnosis: initial reruns reproduced opaque errors; phase diagnostics localized
+one to PostgreSQL setup connection acquisition before DDL. Socket-only readiness
+can observe the image's temporary initialization server. Readiness now probes
+TCP, with bounded setup connection retries before any DDL. The added unaffected
+metric assertion also needed real entity metadata; the fixture now supplies it.
+After those scoped fixes the entire runner passed. This is executor validation,
+not a claim that the reviewer's earlier full runner passed.
+
+Checkpoint A source checks are complete. No cache 006B, query optimization,
+image/platform/ingress validation, publication approval, push or deployment is
+included. Existing shared integration/005 scripts and dependency locks remain
+unchanged.
