@@ -15,7 +15,7 @@ import { StatesMeta } from './StatesMeta';
 @Index('ix_states_last_updated_ts', ['lastUpdatedTs'], {})
 @Index(
   'ix_states_metadata_id_last_updated_ts',
-  ['lastUpdatedTs', 'metadataId'],
+  ['metadataId', 'lastUpdatedTs'],
   {},
 )
 @Index('ix_states_old_state_id', ['oldStateId'], {})

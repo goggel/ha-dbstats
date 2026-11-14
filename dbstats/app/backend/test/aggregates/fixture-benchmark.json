@@ -1,0 +1,1113 @@
+{
+  "version": "11.8.9-MariaDB-ubu2404",
+  "schema": 53,
+  "fixture": "small semantic fixture; NOT representative of production",
+  "cache": "warm; no cache flush; baseline then candidate; five repetitions",
+  "indexes": [
+    {
+      "t": "events",
+      "n": "ix_events_event_type_id_time_fired_ts",
+      "c": "event_type_id",
+      "u": "1"
+    },
+    {
+      "t": "events",
+      "n": "ix_events_event_type_id_time_fired_ts",
+      "c": "time_fired_ts",
+      "u": "1"
+    },
+    {
+      "t": "events",
+      "n": "PRIMARY",
+      "c": "event_id",
+      "u": "0"
+    },
+    {
+      "t": "event_types",
+      "n": "PRIMARY",
+      "c": "event_type_id",
+      "u": "0"
+    },
+    {
+      "t": "states",
+      "n": "ix_states_attributes_id",
+      "c": "attributes_id",
+      "u": "1"
+    },
+    {
+      "t": "states",
+      "n": "ix_states_metadata_id_last_updated_ts",
+      "c": "metadata_id",
+      "u": "1"
+    },
+    {
+      "t": "states",
+      "n": "ix_states_metadata_id_last_updated_ts",
+      "c": "last_updated_ts",
+      "u": "1"
+    },
+    {
+      "t": "states",
+      "n": "PRIMARY",
+      "c": "state_id",
+      "u": "0"
+    },
+    {
+      "t": "states_meta",
+      "n": "ix_states_meta_entity_id",
+      "c": "entity_id",
+      "u": "0"
+    },
+    {
+      "t": "states_meta",
+      "n": "PRIMARY",
+      "c": "metadata_id",
+      "u": "0"
+    },
+    {
+      "t": "state_attributes",
+      "n": "PRIMARY",
+      "c": "attributes_id",
+      "u": "0"
+    },
+    {
+      "t": "statistics",
+      "n": "ix_statistics_statistic_id_start_ts",
+      "c": "metadata_id",
+      "u": "0"
+    },
+    {
+      "t": "statistics",
+      "n": "ix_statistics_statistic_id_start_ts",
+      "c": "start_ts",
+      "u": "0"
+    },
+    {
+      "t": "statistics",
+      "n": "PRIMARY",
+      "c": "id",
+      "u": "0"
+    },
+    {
+      "t": "statistics_meta",
+      "n": "ix_statistics_meta_statistic_id",
+      "c": "statistic_id",
+      "u": "0"
+    },
+    {
+      "t": "statistics_meta",
+      "n": "PRIMARY",
+      "c": "id",
+      "u": "0"
+    },
+    {
+      "t": "statistics_short_term",
+      "n": "ix_statistics_short_term_statistic_id_start_ts",
+      "c": "metadata_id",
+      "u": "0"
+    },
+    {
+      "t": "statistics_short_term",
+      "n": "ix_statistics_short_term_statistic_id_start_ts",
+      "c": "start_ts",
+      "u": "0"
+    },
+    {
+      "t": "statistics_short_term",
+      "n": "PRIMARY",
+      "c": "id",
+      "u": "0"
+    }
+  ],
+  "distributions": [
+    {
+      "metadata_id": null,
+      "cnt": "1"
+    },
+    {
+      "metadata_id": 1,
+      "cnt": "5"
+    },
+    {
+      "metadata_id": 2,
+      "cnt": "2"
+    },
+    {
+      "metadata_id": 3,
+      "cnt": "1"
+    },
+    {
+      "metadata_id": 4,
+      "cnt": "1"
+    },
+    {
+      "metadata_id": 999,
+      "cnt": "1"
+    }
+  ],
+  "results": [
+    {
+      "name": "states",
+      "results": [
+        {
+          "type": "sensor.a",
+          "cnt": "5"
+        },
+        {
+          "type": "sensor.b",
+          "cnt": "2"
+        },
+        {
+          "type": null,
+          "cnt": "2"
+        }
+      ],
+      "plans": {
+        "baseline": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.01194548,
+            "filesort": {
+              "sort_key": "count(0) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_states_meta_entity_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "entity_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "f",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "ix_states_metadata_id_last_updated_ts"
+                      ],
+                      "key": "ix_states_metadata_id_last_updated_ts",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.metadata_id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.00471282,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "candidate": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.016800288,
+            "filesort": {
+              "sort_key": "sum(c.cnt) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_states_meta_entity_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "entity_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.metadata_id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.009567628,
+                      "filtered": 100,
+                      "materialized": {
+                        "lateral": 1,
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.002422792,
+                          "nested_loop": [
+                            {
+                              "table": {
+                                "table_name": "states",
+                                "access_type": "ref",
+                                "possible_keys": [
+                                  "ix_states_metadata_id_last_updated_ts"
+                                ],
+                                "key": "ix_states_metadata_id_last_updated_ts",
+                                "key_length": "5",
+                                "used_key_parts": [
+                                  "metadata_id"
+                                ],
+                                "ref": [
+                                  "dbstats_plan005_fixture.m.metadata_id"
+                                ],
+                                "loops": 1,
+                                "rows": 1,
+                                "cost": 0.001792605,
+                                "filtered": 100,
+                                "using_index": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "timingsMs": {
+        "baseline": [
+          0.302625,
+          0.300958,
+          0.295917,
+          0.294292,
+          0.329541
+        ],
+        "candidate": [
+          0.33,
+          0.3075,
+          0.315,
+          0.273167,
+          0.352375
+        ]
+      },
+      "medianRatio": 1.0466576731636972,
+      "regression": false
+    },
+    {
+      "name": "statistics",
+      "results": [
+        {
+          "type": "sensor.a",
+          "cnt": "5"
+        },
+        {
+          "type": "sensor.b",
+          "cnt": "2"
+        },
+        {
+          "type": null,
+          "cnt": "2"
+        }
+      ],
+      "plans": {
+        "baseline": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.01194548,
+            "filesort": {
+              "sort_key": "count(0) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_statistics_meta_statistic_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "statistic_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "f",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "ix_statistics_statistic_id_start_ts"
+                      ],
+                      "key": "ix_statistics_statistic_id_start_ts",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.00471282,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "candidate": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.016800288,
+            "filesort": {
+              "sort_key": "sum(c.cnt) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_statistics_meta_statistic_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "statistic_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.009567628,
+                      "filtered": 100,
+                      "materialized": {
+                        "lateral": 1,
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.002422792,
+                          "nested_loop": [
+                            {
+                              "table": {
+                                "table_name": "statistics",
+                                "access_type": "ref",
+                                "possible_keys": [
+                                  "ix_statistics_statistic_id_start_ts"
+                                ],
+                                "key": "ix_statistics_statistic_id_start_ts",
+                                "key_length": "5",
+                                "used_key_parts": [
+                                  "metadata_id"
+                                ],
+                                "ref": [
+                                  "dbstats_plan005_fixture.m.id"
+                                ],
+                                "loops": 1,
+                                "rows": 1,
+                                "cost": 0.001792605,
+                                "filtered": 100,
+                                "using_index": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "timingsMs": {
+        "baseline": [
+          0.296875,
+          0.277667,
+          0.253625,
+          0.292958,
+          0.279875
+        ],
+        "candidate": [
+          0.271667,
+          0.251666,
+          0.303625,
+          0.260041,
+          0.278416
+        ]
+      },
+      "medianRatio": 0.9706726217061188,
+      "regression": false
+    },
+    {
+      "name": "statistics_short_term",
+      "results": [
+        {
+          "type": "sensor.a",
+          "cnt": "5"
+        },
+        {
+          "type": "sensor.b",
+          "cnt": "2"
+        },
+        {
+          "type": null,
+          "cnt": "2"
+        }
+      ],
+      "plans": {
+        "baseline": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.01194548,
+            "filesort": {
+              "sort_key": "count(0) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_statistics_meta_statistic_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "statistic_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "f",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "ix_statistics_short_term_statistic_id_start_ts"
+                      ],
+                      "key": "ix_statistics_short_term_statistic_id_start_ts",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.00471282,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "candidate": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.016800288,
+            "filesort": {
+              "sort_key": "sum(c.cnt) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "index",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "key": "ix_statistics_meta_statistic_id",
+                      "key_length": "1023",
+                      "used_key_parts": [
+                        "statistic_id"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.00723266,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "metadata_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.009567628,
+                      "filtered": 100,
+                      "materialized": {
+                        "lateral": 1,
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.002422792,
+                          "nested_loop": [
+                            {
+                              "table": {
+                                "table_name": "statistics_short_term",
+                                "access_type": "ref",
+                                "possible_keys": [
+                                  "ix_statistics_short_term_statistic_id_start_ts"
+                                ],
+                                "key": "ix_statistics_short_term_statistic_id_start_ts",
+                                "key_length": "5",
+                                "used_key_parts": [
+                                  "metadata_id"
+                                ],
+                                "ref": [
+                                  "dbstats_plan005_fixture.m.id"
+                                ],
+                                "loops": 1,
+                                "rows": 1,
+                                "cost": 0.001792605,
+                                "filtered": 100,
+                                "using_index": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "timingsMs": {
+        "baseline": [
+          0.253375,
+          0.270166,
+          0.270083,
+          0.269667,
+          0.244792
+        ],
+        "candidate": [
+          0.281416,
+          0.26425,
+          0.294958,
+          0.28075,
+          0.300209
+        ]
+      },
+      "medianRatio": 1.0435685493590243,
+      "regression": false
+    },
+    {
+      "name": "events",
+      "results": [
+        {
+          "type": "sensor.a",
+          "cnt": "5"
+        },
+        {
+          "type": "sensor.b",
+          "cnt": "2"
+        },
+        {
+          "type": null,
+          "cnt": "2"
+        }
+      ],
+      "plans": {
+        "baseline": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.01621962,
+            "filesort": {
+              "sort_key": "count(0) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "ALL",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.0115068,
+                      "filtered": 100
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "f",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "ix_events_event_type_id_time_fired_ts"
+                      ],
+                      "key": "ix_events_event_type_id_time_fired_ts",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "event_type_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.event_type_id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.00471282,
+                      "filtered": 100,
+                      "using_index": true
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "candidate": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.021074428,
+            "filesort": {
+              "sort_key": "sum(c.cnt) desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "m",
+                      "access_type": "ALL",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "loops": 1,
+                      "rows": 4,
+                      "cost": 0.0115068,
+                      "filtered": 100
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "event_type_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.m.event_type_id"
+                      ],
+                      "loops": 4,
+                      "rows": 1,
+                      "cost": 0.009567628,
+                      "filtered": 100,
+                      "materialized": {
+                        "lateral": 1,
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.002422792,
+                          "nested_loop": [
+                            {
+                              "table": {
+                                "table_name": "events",
+                                "access_type": "ref",
+                                "possible_keys": [
+                                  "ix_events_event_type_id_time_fired_ts"
+                                ],
+                                "key": "ix_events_event_type_id_time_fired_ts",
+                                "key_length": "5",
+                                "used_key_parts": [
+                                  "event_type_id"
+                                ],
+                                "ref": [
+                                  "dbstats_plan005_fixture.m.event_type_id"
+                                ],
+                                "loops": 1,
+                                "rows": 1,
+                                "cost": 0.001792605,
+                                "filtered": 100,
+                                "using_index": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "timingsMs": {
+        "baseline": [
+          0.26675,
+          0.268791,
+          0.243084,
+          0.294166,
+          0.273584
+        ],
+        "candidate": [
+          0.262167,
+          0.285,
+          0.277375,
+          0.28275,
+          0.328959
+        ]
+      },
+      "medianRatio": 1.0519325423842316,
+      "regression": true
+    },
+    {
+      "name": "attributes",
+      "results": [
+        {
+          "type": "sensor.a",
+          "cnt": "0.01525879"
+        },
+        {
+          "type": "sensor.b",
+          "cnt": "0.03051758"
+        },
+        {
+          "type": null,
+          "cnt": "0.01525879"
+        }
+      ],
+      "plans": {
+        "baseline": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.013871482,
+            "filesort": {
+              "sort_key": "sum(octet_length(a.shared_attrs)) / 1024.0 / 1024.0 desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "a",
+                      "access_type": "ALL",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "loops": 1,
+                      "rows": 3,
+                      "cost": 0.0130534,
+                      "filtered": 100
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "4",
+                      "used_key_parts": [
+                        "attributes_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.a.attributes_id"
+                      ],
+                      "loops": 3,
+                      "rows": 1,
+                      "cost": 0.000818082,
+                      "filtered": 100,
+                      "materialized": {
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.02218706,
+                          "temporary_table": {
+                            "nested_loop": [
+                              {
+                                "table": {
+                                  "table_name": "m",
+                                  "access_type": "index",
+                                  "possible_keys": [
+                                    "PRIMARY"
+                                  ],
+                                  "key": "ix_states_meta_entity_id",
+                                  "key_length": "1023",
+                                  "used_key_parts": [
+                                    "entity_id"
+                                  ],
+                                  "loops": 1,
+                                  "rows": 4,
+                                  "cost": 0.00723266,
+                                  "filtered": 100,
+                                  "using_index": true
+                                }
+                              },
+                              {
+                                "table": {
+                                  "table_name": "s",
+                                  "access_type": "ref",
+                                  "possible_keys": [
+                                    "ix_states_metadata_id_last_updated_ts",
+                                    "ix_states_attributes_id"
+                                  ],
+                                  "key": "ix_states_metadata_id_last_updated_ts",
+                                  "key_length": "5",
+                                  "used_key_parts": [
+                                    "metadata_id"
+                                  ],
+                                  "ref": [
+                                    "dbstats_plan005_fixture.m.metadata_id"
+                                  ],
+                                  "loops": 4,
+                                  "rows": 1,
+                                  "cost": 0.00891904,
+                                  "filtered": 100,
+                                  "attached_condition": "s.attributes_id is not null"
+                                }
+                              },
+                              {
+                                "table": {
+                                  "table_name": "a",
+                                  "access_type": "eq_ref",
+                                  "possible_keys": [
+                                    "PRIMARY"
+                                  ],
+                                  "key": "PRIMARY",
+                                  "key_length": "4",
+                                  "used_key_parts": [
+                                    "attributes_id"
+                                  ],
+                                  "ref": [
+                                    "dbstats_plan005_fixture.s.attributes_id"
+                                  ],
+                                  "loops": 4,
+                                  "rows": 1,
+                                  "cost": 0.00603536,
+                                  "filtered": 100
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "candidate": {
+          "query_block": {
+            "select_id": 1,
+            "cost": 0.013871482,
+            "filesort": {
+              "sort_key": "sum(octet_length(a.shared_attrs)) / 1024.0 / 1024.0 desc",
+              "temporary_table": {
+                "nested_loop": [
+                  {
+                    "table": {
+                      "table_name": "a",
+                      "access_type": "ALL",
+                      "possible_keys": [
+                        "PRIMARY"
+                      ],
+                      "loops": 1,
+                      "rows": 3,
+                      "cost": 0.0130534,
+                      "filtered": 100
+                    }
+                  },
+                  {
+                    "table": {
+                      "table_name": "<derived2>",
+                      "access_type": "ref",
+                      "possible_keys": [
+                        "key0"
+                      ],
+                      "key": "key0",
+                      "key_length": "5",
+                      "used_key_parts": [
+                        "attributes_id"
+                      ],
+                      "ref": [
+                        "dbstats_plan005_fixture.a.attributes_id"
+                      ],
+                      "loops": 3,
+                      "rows": 1,
+                      "cost": 0.000818082,
+                      "filtered": 100,
+                      "materialized": {
+                        "query_block": {
+                          "select_id": 2,
+                          "cost": 0.008336236,
+                          "temporary_table": {
+                            "nested_loop": [
+                              {
+                                "table": {
+                                  "table_name": "m",
+                                  "access_type": "index",
+                                  "possible_keys": [
+                                    "PRIMARY"
+                                  ],
+                                  "key": "ix_states_meta_entity_id",
+                                  "key_length": "1023",
+                                  "used_key_parts": [
+                                    "entity_id"
+                                  ],
+                                  "loops": 1,
+                                  "rows": 4,
+                                  "cost": 0.00723266,
+                                  "filtered": 100,
+                                  "using_index": true
+                                }
+                              },
+                              {
+                                "table": {
+                                  "table_name": "<derived3>",
+                                  "access_type": "ref",
+                                  "possible_keys": [
+                                    "key0"
+                                  ],
+                                  "key": "key0",
+                                  "key_length": "5",
+                                  "used_key_parts": [
+                                    "metadata_id"
+                                  ],
+                                  "ref": [
+                                    "dbstats_plan005_fixture.m.metadata_id"
+                                  ],
+                                  "loops": 4,
+                                  "rows": 1,
+                                  "cost": 0.001103576,
+                                  "filtered": 100,
+                                  "materialized": {
+                                    "query_block": {
+                                      "select_id": 3,
+                                      "cost": 0.0126478,
+                                      "temporary_table": {
+                                        "nested_loop": [
+                                          {
+                                            "table": {
+                                              "table_name": "states",
+                                              "access_type": "ALL",
+                                              "loops": 1,
+                                              "rows": 11,
+                                              "cost": 0.0126478,
+                                              "filtered": 100
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "timingsMs": {
+        "baseline": [
+          0.309917,
+          0.267917,
+          0.340916,
+          0.335083,
+          0.357791
+        ],
+        "candidate": [
+          0.337458,
+          0.32675,
+          0.316125,
+          0.385084,
+          0.343959
+        ]
+      },
+      "medianRatio": 1.0070877961579667,
+      "regression": false
+    }
+  ],
+  "adoption": "No production rewrite adopted; representative evidence and gateway gate deferred"
+}
