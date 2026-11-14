@@ -18,7 +18,7 @@ Plan 001 integration changes (original hashes remain in UPSTREAM.sha256):
 - dbstats/.dockerignore excludes node_modules, dist and build from the context;
   all artifacts are rebuilt from source. Builder adds Python, make and g++.
 - Release routes through the builder's --docker-hub and --image arguments,
-  using github.repository_owner and dbstats-addon-{arch}. Builder 2025.11.0
+  using github.repository_owner and dbstats-addon-{arch}. Builder 2025.02.0
   replaces floating master (its composite action requires a version tag).
   DBSTATS_RUNTIME_IMAGE_VERIFIED must remain unset until Plan 003 passes the
   runtime smoke gate. PR validation builds source only and never publishes.

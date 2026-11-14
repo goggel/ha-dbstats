@@ -8,7 +8,7 @@ const repo = read('repository.yaml');
 const workflow = read('.github/workflows/release.yml');
 const job = workflow.jobs.release_db_stats_addon;
 const builder = job.steps.find((s) => s.uses?.startsWith('home-assistant/builder@'));
-assert.equal(builder.uses, 'home-assistant/builder@2025.11.0');
+assert.equal(builder.uses, 'home-assistant/builder@2025.02.0');
 assert.equal(job.if, "vars.DBSTATS_RUNTIME_IMAGE_VERIFIED == 'true'");
 assert.match(builder.with.args, /--docker-hub "ghcr.io\/\$\{\{ github.repository_owner \}\}"/);
 assert.match(builder.with.args, /--image "dbstats-addon-\{arch\}"/);
