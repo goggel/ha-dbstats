@@ -50,6 +50,34 @@ validateFixtureUrls(process.env);
    assert.equal(Number((await gateway.query('SELECT 42 AS value'))[0].value),42);
    if(type==='mysql') assert.equal(ds.driver.pool._allConnections.length,ds.driver.pool._freeConnections.length);
    else assert.equal(ds.driver.master.totalCount,ds.driver.master.idleCount);
+   if(maria) {
+    const {NestFactory} = require('@nestjs/core');
+    const {Module,Controller,Get} = require('@nestjs/common');
+    const {OperationInterceptor} = require('../dist/backend/src/operation.interceptor');
+    class MetricFixture {
+     timeout() { return gateway.query(slow); }
+     healthy() { return gateway.query('SELECT 42 AS cnt'); }
+    }
+    Controller()(MetricFixture);
+    for(const name of ['timeout','healthy']) Get(name)(MetricFixture.prototype,name,Object.getOwnPropertyDescriptor(MetricFixture.prototype,name));
+    class FixtureModule {}
+    Module({controllers:[MetricFixture]})(FixtureModule);
+    const app = await NestFactory.create(FixtureModule,{logger:false});
+    app.useGlobalInterceptors(new OperationInterceptor(gateway));
+    try {
+     await app.listen(0,'127.0.0.1');
+     const base = await app.getUrl();
+     const response = await fetch(`${base}/timeout`);
+     assert.equal(response.status,408);
+     const body = await response.json();
+     assert.equal(body.code,'QUERY_TIMEOUT');
+     assert.equal(body.metricId,'MetricFixture.timeout');
+     assert.equal(Number((await (await fetch(`${base}/healthy`)).json())[0].cnt),42);
+     const active = await ds.query("SELECT INFO FROM information_schema.PROCESSLIST WHERE DB=DATABASE() AND COMMAND='Query' AND ID<>CONNECTION_ID()");
+     assert.equal(active.length,0,'HTTP metric left orphan MariaDB SQL');
+     console.log('PASS MariaDB HTTP timeout metric, following metric progress and no orphan SQL');
+    } finally { await app.close(); }
+   }
    console.log(`PASS gateway ${type==='postgres'?'PostgreSQL':maria?'MariaDB':'MySQL'} real timeout, two sessions, replacement, healthy query and resource baseline`);
   } finally {await ds.destroy();}
  }

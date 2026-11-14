@@ -20,6 +20,8 @@ describe('QueryGateway lifecycle', () => {
       }
     }
     expect(queryBudgetsFromEnv({})).toEqual(defaultQueryBudgets);
+    expect(defaultQueryBudgets.concurrency).toBe(1);
+    expect(() => queryBudgetsFromEnv({ DB_QUEUE_TIMEOUT: '180000' })).toThrow('Combined');
   });
   it.each([NaN, Infinity, 0, -1, 1.5, 180001])(
     'rejects invalid finite execution budget %s',
@@ -66,7 +68,9 @@ describe('QueryGateway lifecycle', () => {
     await second;
     finish!(42);
     expect(await first).toBe(42);
-    await expect(gateway.query('error')).rejects.toThrow('fixture');
+    await expect(gateway.query('error')).rejects.toMatchObject({
+      response: { code: 'QUERY_FAILED' },
+    });
     expect(runner.release).toHaveBeenCalledTimes(2);
   });
   it('releases a late acquisition without admitting extra concurrent work', async () => {
@@ -98,5 +102,34 @@ describe('QueryGateway lifecycle', () => {
     connect!({});
     await new Promise((resolve) => setTimeout(resolve, 5));
     expect(runner.release).toHaveBeenCalledTimes(1);
+  });
+  it('shares accumulated operation time, stops further SQL, and recovers', async () => {
+    let clock = 0;
+    const runner = {
+      connect: async () => ({ interrupt() {} }),
+      release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 35));
+        clock++;
+        return clock;
+      }),
+    };
+    const gateway = new QueryGateway(
+      {
+        options: { type: 'sqlite' },
+        createQueryRunner: () => runner,
+      } as unknown as DataSource,
+      { ...defaultQueryBudgets, executionMs: 55, queueMs: 1, acquisitionMs: 1 },
+    );
+    await expect(
+      gateway.runOperation(async () => {
+        await gateway.query('fixture first');
+        await gateway.query('fixture second');
+        await gateway.query('must never start');
+      }),
+    ).rejects.toMatchObject({ response: { code: 'QUERY_TIMEOUT' } });
+    expect(runner.query).toHaveBeenCalledTimes(2);
+    expect(await gateway.query('healthy following metric')).toBe(3);
+    expect(runner.release).toHaveBeenCalledTimes(3);
   });
 });

@@ -1,4 +1,5 @@
-import { join } from 'path';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { OperationInterceptor } from './operation.interceptor';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -28,6 +29,9 @@ import { SystemModule } from './system/system.module';
   ],
   exports: [DatabaseModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: OperationInterceptor },
+  ],
 })
 export class AppModule {}

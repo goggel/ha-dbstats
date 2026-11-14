@@ -27,12 +27,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
       this._options === true ||
       (this._options instanceof Array && this._options.indexOf('query') !== -1)
     ) {
-      const sql =
-        query +
-        (parameters && parameters.length
-          ? ' -- PARAMETERS: ' + this.stringifyParams(parameters)
-          : '');
-      this._logger.log('query' + ': ' + sql);
+      this._logger.log('Database query executed');
     }
   }
 
@@ -50,13 +45,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
       this._options === true ||
       (this._options instanceof Array && this._options.indexOf('error') !== -1)
     ) {
-      const sql =
-        query +
-        (parameters && parameters.length
-          ? ' -- PARAMETERS: ' + this.stringifyParams(parameters)
-          : '');
-      this._logger.log(`query failed: ` + sql);
-      this._logger.log(`error:`, error);
+      this._logger.warn('Database query failed');
     }
   }
 
@@ -69,13 +58,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
     parameters?: unknown[],
     queryRunner?: QueryRunner,
   ) {
-    const sql =
-      query +
-      (parameters && parameters.length
-        ? ' -- PARAMETERS: ' + this.stringifyParams(parameters)
-        : '');
-    this._logger.log(`query is slow: ` + sql);
-    this._logger.log(`execution time: ` + time);
+    this._logger.log(`Database query slow; execution time: ${time}ms`);
   }
 
   /**

@@ -37,7 +37,8 @@ const hash = () => crypto.createHash('sha256').update(fs.readFileSync(file)).dig
     setTimeout(() => abort.abort(), 30);
     await assert.rejects(running, e => e.getResponse()?.code === 'QUERY_CANCELLED');
     assert.equal((await gateway.query('SELECT value FROM fixture'))[0].value, 42);
-    await assert.rejects(gateway.query('INSERT INTO fixture VALUES(43)'), e => e.driverError?.code === 'SQLITE_READONLY');
+    await assert.rejects(gateway.query('INSERT INTO fixture VALUES(43)'), e => e.getResponse?.()?.code === 'QUERY_FAILED');
+    await assert.rejects(ds.query('INSERT INTO fixture VALUES(43)'), e => e.driverError?.code === 'SQLITE_READONLY');
     assert.equal(hash(), before);
     console.log('PASS native SQLite interrupt, healthy next query, read-only fixture unchanged');
   } finally { await ds.destroy(); }

@@ -8,6 +8,7 @@ function run(args) {
 }
 (async()=>{
  const native=spawnSync(process.execPath,['test/sqlite-interrupt.cjs'],{cwd:path.resolve('dbstats/app/backend'),stdio:'inherit',timeout:10000});assert.equal(native.status,0);
+ const operation=spawnSync(process.execPath,['test/operation-http.cjs'],{cwd:path.resolve('dbstats/app/backend'),stdio:'inherit',timeout:10000});assert.equal(operation.status,0);
  const names=['dbstats-plan003-mariadb-fixture','dbstats-plan003-postgres-fixture','dbstats-plan004-mysql-fixture'];
  const created=[];
  try {

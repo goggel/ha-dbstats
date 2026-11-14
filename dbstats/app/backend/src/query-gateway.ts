@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { performance } from 'node:perf_hooks';
 import {
   RequestTimeoutException,
   ServiceUnavailableException,
@@ -20,7 +22,7 @@ export const defaultQueryBudgets: QueryBudgets = {
   executionMs: 180000,
   acquisitionMs: 5000,
   queueMs: 5000,
-  concurrency: 4,
+  concurrency: 1,
   maxPending: 32,
 };
 export function validateQueryBudgets(value: QueryBudgets): QueryBudgets {
@@ -36,6 +38,9 @@ export function validateQueryBudgets(value: QueryBudgets): QueryBudgets {
     ) {
       throw new Error(`Invalid query budget: ${key}`);
     }
+  }
+  if (value.executionMs + value.queueMs + value.acquisitionMs > 200000) {
+    throw new Error('Combined query budgets must not exceed 200000ms');
   }
   return { ...value };
 }
@@ -53,7 +58,7 @@ export function queryBudgetsFromEnv(env: NodeJS.ProcessEnv): QueryBudgets {
       env.DB_QUEUE_TIMEOUT === undefined ? 5000 : Number(env.DB_QUEUE_TIMEOUT),
     concurrency:
       env.DB_QUERY_CONCURRENCY === undefined
-        ? 4
+        ? 1
         : Number(env.DB_QUERY_CONCURRENCY),
     maxPending:
       env.DB_QUERY_MAX_PENDING === undefined
@@ -80,6 +85,36 @@ interface Waiter {
 /** Own the DataSource exclusively: SQLite interrupt is connection-wide. Never mix
  * direct repository/runner access with this gateway on a SQLite DataSource. */
 export class QueryGateway {
+  private readonly operation = new AsyncLocalStorage<{ deadline: number }>();
+
+  runOperation<T>(work: () => Promise<T>): Promise<T> {
+    if (this.operation.getStore()) {
+      return work();
+    }
+    return this.operation.run(
+      {
+        deadline:
+          performance.now() +
+          this.budgets.executionMs +
+          this.budgets.queueMs +
+          this.budgets.acquisitionMs,
+      },
+      work,
+    );
+  }
+
+  private remaining(): number {
+    const deadline = this.operation.getStore()?.deadline;
+    const remaining =
+      deadline === undefined
+        ? this.budgets.executionMs
+        : Math.ceil(deadline - performance.now());
+    if (remaining <= 0) {
+      throw timeout();
+    }
+    return remaining;
+  }
+
   private active = 0;
   private pending: Waiter[] = [];
   readonly budgets: QueryBudgets;
@@ -98,6 +133,7 @@ export class QueryGateway {
   }
 
   private async enter(signal?: AbortSignal): Promise<void> {
+    this.remaining();
     if (signal?.aborted) {
       throw cancelled();
     }
@@ -135,10 +171,13 @@ export class QueryGateway {
           resolve();
         },
       };
-      const timer = setTimeout(() => {
-        remove();
-        reject(timeout());
-      }, this.budgets.queueMs);
+      const timer = setTimeout(
+        () => {
+          remove();
+          reject(timeout());
+        },
+        Math.min(this.budgets.queueMs, this.remaining()),
+      );
       this.pending.push(waiter);
       signal?.addEventListener('abort', abort, { once: true });
       /* eslint-enable no-use-before-define */
@@ -155,16 +194,23 @@ export class QueryGateway {
     parameters: unknown[] = [],
     signal?: AbortSignal,
   ): Promise<T> {
+    if (!this.operation.getStore()) {
+      return this.runOperation(() => this.query<T>(sql, parameters, signal));
+    }
     await this.enter(signal);
     let runner: QueryRunner;
     try {
       runner = this.source.createQueryRunner();
     } catch (error) {
       this.leave();
-      throw error;
+      throw new ServiceUnavailableException({
+        code: 'QUERY_FAILED',
+        message: 'Database query failed',
+      });
     }
     let deferredCleanup = false;
     try {
+      this.remaining();
       const connection = runner.connect();
       let timer: ReturnType<typeof setTimeout>;
       try {
@@ -173,7 +219,7 @@ export class QueryGateway {
           new Promise((_, reject) => {
             timer = setTimeout(
               () => reject(timeout()),
-              this.budgets.acquisitionMs,
+              Math.min(this.budgets.acquisitionMs, this.remaining()),
             );
           }),
         ]);
@@ -198,6 +244,17 @@ export class QueryGateway {
         throw cancelled();
       }
       return await this.execute<T>(runner, sql, parameters, signal);
+    } catch (error) {
+      if (
+        error instanceof RequestTimeoutException ||
+        error instanceof ServiceUnavailableException
+      ) {
+        throw error;
+      }
+      throw new ServiceUnavailableException({
+        code: 'QUERY_FAILED',
+        message: 'Database query failed',
+      });
     } finally {
       try {
         if (!deferredCleanup) {
@@ -217,7 +274,7 @@ export class QueryGateway {
     parameters: unknown[],
     signal?: AbortSignal,
   ): Promise<T> {
-    const ms = this.budgets.executionMs;
+    const ms = Math.min(this.budgets.executionMs, this.remaining());
     const type = this.source.options.type;
     let interrupt: (() => void) | undefined;
     if (type === 'mysql' || type === 'mariadb') {
@@ -253,7 +310,9 @@ export class QueryGateway {
       if (signal?.aborted) {
         throw cancelled();
       }
+      this.remaining();
       const result = await runner.query(sql, parameters);
+      this.remaining();
       if (signal?.aborted) {
         throw cancelled();
       }
@@ -279,7 +338,13 @@ export class QueryGateway {
       ) {
         throw timeout();
       }
-      throw error;
+      if (error instanceof RequestTimeoutException) {
+        throw error;
+      }
+      throw new ServiceUnavailableException({
+        code: 'QUERY_FAILED',
+        message: 'Database query failed',
+      });
     } finally {
       if (timer) {
         clearTimeout(timer);

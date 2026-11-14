@@ -25,6 +25,10 @@ export class SystemService {
   }
 
   async getTableRows(): Promise<Array<ICountStats>> {
+    return this.gateway.runOperation(() => this.getTableRowsWithinOperation());
+  }
+
+  private async getTableRowsWithinOperation(): Promise<Array<ICountStats>> {
     //select m.entity_id, count(1) from states s, states_meta m where s.metadata_id=m.metadata_id group by m.entity_id
     const dbType = configProvider().typeOrmConfig.type;
     if (dbType === 'sqlite') {
@@ -56,6 +60,10 @@ export class SystemService {
   }
 
   async getTableSize(): Promise<Array<ICountStats>> {
+    return this.gateway.runOperation(() => this.getTableSizeWithinOperation());
+  }
+
+  private async getTableSizeWithinOperation(): Promise<Array<ICountStats>> {
     //select m.entity_id, count(1) from states s, states_meta m where s.metadata_id=m.metadata_id group by m.entity_id
     const dbType = configProvider().typeOrmConfig.type;
     if (dbType === 'sqlite') {
@@ -93,6 +101,10 @@ ORDER BY (data_length + index_length) DESC;`);
   }
 
   async getVersion(): Promise<string> {
+    return this.gateway.runOperation(() => this.getVersionWithinOperation());
+  }
+
+  private async getVersionWithinOperation(): Promise<string> {
     const dbType = configProvider().typeOrmConfig.type;
     if (dbType === 'sqlite') {
       const data = (await this.gateway.query(
@@ -118,6 +130,10 @@ ORDER BY (data_length + index_length) DESC;`);
   }
 
   async getDbAlerts(): Promise<Array<IShowAlerts>> {
+    return this.gateway.runOperation(() => this.getDbAlertsWithinOperation());
+  }
+
+  private async getDbAlertsWithinOperation(): Promise<Array<IShowAlerts>> {
     const alerts: Array<IShowAlerts> = [];
     const dbType = configProvider().typeOrmConfig.type;
     let dbVersion = 'unknown';
@@ -127,7 +143,7 @@ ORDER BY (data_length + index_length) DESC;`);
         dbVersion = dbVersion.substring(0, 42).trim() + '...';
       }
     } catch (err) {
-      this.logger.warn(`Failed to get database version: ${err.message}`);
+      this.logger.warn('Failed to get database version');
     }
     alerts.push({
       type: 'info',
