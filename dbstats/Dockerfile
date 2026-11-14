@@ -1,4 +1,17 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/base-nodejs:0.2.5
+FROM node:22-alpine AS app-build
+WORKDIR /build
+COPY app/shared/package.json app/shared/package-lock.json app/shared/.npmrc app/shared/.eslintrc.js app/shared/.prettierrc app/shared/tsconfig.json shared/
+COPY app/shared/src/ shared/src/
+RUN npm --prefix shared ci && npm --prefix shared run build
+COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc app/backend/nest-cli.json app/backend/tsconfig.json app/backend/jest.config.ts backend/
+COPY app/backend/src/ backend/src/
+RUN npm --prefix backend ci && npm --prefix backend run build
+COPY app/frontend/package.json app/frontend/package-lock.json app/frontend/.npmrc app/frontend/.eslintrc.json app/frontend/.eslintignore app/frontend/config-overrides.js app/frontend/tsconfig.json app/frontend/tsconfig.path.json frontend/
+COPY app/frontend/src/ frontend/src/
+COPY app/frontend/public/ frontend/public/
+RUN npm --prefix frontend ci && npm --prefix frontend run build
+
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -18,10 +31,16 @@ RUN  rm -f -r /etc/nginx
 # Copy root file system
 COPY rootfs /
 
-COPY --from=ghcr.io/jehy/hass-dbstats:0.3.23 /usr/src/app /usr/src/app
-COPY --from=ghcr.io/jehy/hass-dbstats:0.3.23 /var/www/html /var/www/html
+COPY --from=app-build /build/backend/dist /usr/src/app/dist
+COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc /usr/src/app/
+COPY --from=app-build /build/frontend/build /var/www/html
+COPY app/UPSTREAM.md /usr/src/app/UPSTREAM.md
 WORKDIR /usr/src/app
-RUN npm ci --omit=dev --no-fund --no-audit && npm cache clean --force ## need to reinstall deps because they can be binary incompatible
+# Compile SQLite for the final platform and Node ABI, never copy builder binaries.
+RUN apk add --no-cache --virtual .native-build g++ make python3 \
+    && npm_config_build_from_source=true npm ci --omit=dev --no-fund --no-audit \
+    && npm cache clean --force \
+    && apk del .native-build
 
 # Health check
 #HEALTHCHECK --start-period=10s \
@@ -41,6 +60,7 @@ ENV NODE_ENV production
 
 # Labels
 LABEL \
+    io.dbstats.application.revision="927ee43f7fe327e0eee2909af73877bd4a44784a" \
     io.hass.name="${BUILD_NAME}" \
     io.hass.description="${BUILD_DESCRIPTION}" \
     io.hass.arch="${BUILD_ARCH}" \
