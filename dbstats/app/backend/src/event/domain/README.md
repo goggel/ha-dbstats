@@ -112,3 +112,34 @@ execution timeout/recovery, PostgreSQL escaped NUL/lone surrogate rejection,
 and an actual PostgreSQL 15 explicit compatibility error. The transfer bound
 is rows and tested payload exclusion; individual valid domain string lengths
 remain recorder-controlled, not an imposed byte cap.
+
+Final local checks for this revision
+------------------------------------
+
+- Node v24.22.1; dependencies installed with npm ci, no upgrades/lock changes.
+- Backend `test -- --runInBand`: 7 suites, 66 tests passed.
+- Backend `run build`: passed.
+- `node test/domain/app-drivers.cjs`: passed native SQLite 3.52.0,
+  MariaDB 11.8, MySQL 8.4, PostgreSQL 16; PostgreSQL 15 compatibility gate passed.
+  SQLite returned number counts; all three server drivers returned string counts.
+- Backend `FIXTURE_SQLITE_HTTP_ONLY=1 npm run test:integration`: passed SQLite
+  WAL/native readonly and HTTP subset. Full shared server integration was not
+  rerun: its separate named external fixtures were not configured. Domain
+  server-driver coverage above is independent and complete for this runner.
+- Frontend `test -- --runInBand`: 2 suites, 21 tests passed; `run build` passed.
+- Domain scoped ESLint (`eslint 'src/event/**/*.ts'`): zero errors, one existing
+  controller warning. Full `lint:check`: fails on one pre-existing Prettier
+  error at query-gateway.spec.ts:24 (confirmed present at e87eaaa), plus 28
+  existing warnings. No unrelated gateway test formatting changed.
+- `git diff --check e87eaaa HEAD`: passed; fixture containers removed.
+- The first larger-payload fixture run failed ER_DATA_TOO_LONG because the
+  fixture used TEXT; reassessment identified the mismatch with recorder LONGTEXT.
+  After using LONGTEXT for MySQL/MariaDB, the entire matrix passed with 1 MiB
+  referenced payloads, SELECT-only reader accounts and readonly PG transactions.
+- No final image rebuild, platform checks, HA ingress, production connections,
+  push, PR, deployment, cache/status/UI/size work or 005 fixture edits performed.
+
+Remaining gates: safe pre-16 PostgreSQL compatibility/product decision; full
+shared server integration rerun if required for composed release; existing
+repository lint failure; final image/platform/HA ingress validation. No shipping
+or full checkpoint-A completion claim is made.
