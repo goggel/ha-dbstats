@@ -103,7 +103,7 @@ async function read(options) {
         assert.equal(row.value, 42);
         assert.equal(String(row.big), '9007199254740993');
         assert.equal(String(row.amount), '12.34');
-        assert.equal(row.stamp instanceof Date ? row.stamp.toISOString().slice(0, 10) : row.stamp, '2026-11-14');
+        assert.equal(row.stamp instanceof Date ? [row.stamp.getFullYear(), String(row.stamp.getMonth() + 1).padStart(2, '0'), String(row.stamp.getDate()).padStart(2, '0')].join('-') : row.stamp, '2026-11-14');
         await assert.rejects(ds.query('SELECT * FROM missing_fixture_table'));
       } finally { await ds.destroy(); }
       console.log(`PASS ${name} connection/read`);
