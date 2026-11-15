@@ -24,7 +24,7 @@ import { SystemModule } from './system/system.module';
     StatisticModule,
     SystemModule,
     ServeStaticModule.forRoot({
-      rootPath: '/var/www/html',
+      rootPath: process.env.DBSTATS_STATIC_ROOT || '/var/www/html',
     }),
   ],
   exports: [DatabaseModule],

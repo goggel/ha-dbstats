@@ -54,9 +54,13 @@ async function read(options) {
     }
     if (phase === 'sqlite') return;
     if (phase === 'all' || phase === 'http') {
+    // Hosted runners may already have an index under /var/www/html. Own the
+    // static root so these API/middleware 404 assertions do not depend on it.
+    const staticRoot = path.join(dir, 'http-static');
+    fs.mkdirSync(staticRoot);
     child = spawn(process.execPath, ['dist/backend/src/main.js'], {
       cwd: path.join(__dirname, '..'),
-      env: { ...process.env, DB_CONNECT_STRING: `sqlite://${database}`, SERVER_PORT: '31983' },
+      env: { ...process.env, DB_CONNECT_STRING: `sqlite://${database}`, SERVER_PORT: '31983', DBSTATS_STATIC_ROOT: staticRoot },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let logs = '';
