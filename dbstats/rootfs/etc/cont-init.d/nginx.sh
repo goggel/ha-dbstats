@@ -2,9 +2,9 @@
 # ==============================================================================
 # Configure NGINX
 # ==============================================================================
-ingress_port=$(bashio::addon.ingress_port)
-ingress_entry=$(bashio::addon.ingress_entry)
-ingress_interface=$(bashio::addon.ip_address)
+ingress_port=$(bashio::app.ingress_port)
+ingress_entry=$(bashio::app.ingress_entry)
+ingress_interface=$(bashio::app.ip_address)
 dns_host=$(bashio::dns.host)
 
 [[ $ingress_entry =~ ^/(.*)$ ]] && ingress_entry=${BASH_REMATCH[1]} #Remove slashes from both sides
