@@ -77,7 +77,7 @@ Prior evidence commit 3c2d73f and its recorder-performance-research.md remain
 background; these measurements are new and do not establish the live 180-second
 cause or claim it is fixed.
 
-## Estimates: decision and next useful option
+## Original estimate discussion (superseded for recent attributes below)
 
 The user's acceptance of estimates supports the existing cheap metadata counts,
 now visibly described in the dashboard. There is no database-maintained
@@ -144,3 +144,69 @@ growth; corrected by advancing timestamps when doubling rows, preserving the
 unique (metadata_id,start_ts) index. Failed setup yielded no accepted plans; its
 owned container was removed. Both final runners completed and all owned containers
 were removed.
+
+
+## Approved recent attribute mode (implemented)
+
+The attribute chart now defaults to **Recent sample**: the highest 20,000 existing
+state IDs, selected by descending primary key before joins or deduplication. It
+reports observed unique shared-attribute size per entity within those rows,
+without extrapolation or a representative/global-top claim. The existing exact
+endpoint and its SQL are unchanged; full history is requested only when the user
+selects that mode. Other count charts retain all-history scope. No version bump.
+
+`state/countRecentAttributesSize` returns a singleton array envelope with `basis:
+recent-state-ids`, `rowLimit: 20000`, actual `sampledRows`, and `rows`. Keeping an
+array preserves the existing request queue validation and heavy concurrency path.
+A window count over the limited input carries metadata through pair grouping and
+entity aggregation in one QueryGateway query/operation. Empty input returns zero;
+orphan-only input retains its sampled count. Attribute payload length is measured
+after pair deduplication. Null/orphan-only groups preserve metadata but do not
+claim bytes; orphan-only groups sort after valid groups so PostgreSQL null ordering
+cannot displace valid chart entries. Existing LENGTH, strict >0.01 filtering after
+the configured limit, rounding, and arbitrary tie membership remain in effect.
+No full COUNT, random selection, index DDL, hints, or deadline increase is added.
+The SQL uses CTEs and window functions supported by the tested database versions.
+
+The accessible scope selector remounts the chart on mode change, aborting the old
+browser subscription via useRequest cleanup. Existing SQL may continue until its
+server deadline; the exact-mode caption explicitly explains this. The existing
+category-copy field, loading/error/retry states, and queue remain in use.
+
+Validation uses `test/recent-attributes.cjs` against actual SQLite, MariaDB 11.8,
+MySQL 8.4, PostgreSQL 16 and PostgreSQL 15 drivers through QueryGateway.
+`python3 docs/chart-query-evidence/recent.py` creates named owned disposable
+containers, runs tests/plans/benchmarks and removes them (including volumes) in
+finally. No production database is accessed. Small fixtures cover empty and
+partial windows, gapped IDs, repeated/shared Unicode attributes, null payloads,
+missing metadata and attributes, orphan-only entities, and values just below and
+above the pre-rounding threshold. Larger old/recent cohorts prove the 20,000-row
+bound and different results from exact history. SQLite also checks configured
+limits 7 and 100 (clamped to 20). Both charts agree when history fits the window.
+Raw plans and three sequential timings at ~25k and >319k states are recorded in
+`recent-*.json`. These are synthetic repeated-pair fixtures, client elapsed times,
+one lifecycle per engine, no cold-cache or production latency guarantee. The exact
+query can be faster on small databases; the recent query answers a different
+question. Plans are ordinary EXPLAIN, not runtime loop evidence. MySQL and MariaDB
+show the primary-key scan inside the limited derived input before metadata joins;
+MySQL explicitly reports backward_index_scan. PostgreSQL uses a backward primary
+index scan under Limit. SQLite scans its integer-primary-key table in reverse
+without sorting the state history. Only bounded aggregate inputs are sorted.
+
+Backend Jest: 83 tests; frontend: 23 tests including default recent-only fetching,
+actual row-count disclosure, explicit exact selection, and subscription abortion
+on switching in both directions. Backend/frontend builds and zero-warning ESLint
+checks pass. The frontend build emits existing Node deprecation and stale
+Browserslist notices; no dependency or lock changes were made.
+
+Final synthetic medians (recent / exact, milliseconds; ~25k then >319k rows):
+
+- sqlite: 9.37 / 1.89 (0.20x exact/recent); 9.08 / 21.58 (2.38x exact/recent).
+- maria: 17.87 / 9.98 (0.56x exact/recent); 17.81 / 117.76 (6.61x exact/recent).
+- mysql: 12.77 / 7.39 (0.58x exact/recent); 12.93 / 70.23 (5.43x exact/recent).
+- pg16: 6.90 / 5.58 (0.81x exact/recent); 7.77 / 76.37 (9.83x exact/recent).
+- pg15: 7.01 / 5.31 (0.76x exact/recent); 7.50 / 105.63 (14.08x exact/recent).
+
+PostgreSQL 15 initially encountered a startup connection reset. Its owned container
+was removed; TCP readiness checking was tightened and the complete driver suite
+then passed. All owned containers and their anonymous volumes were removed.

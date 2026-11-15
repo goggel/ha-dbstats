@@ -40,6 +40,40 @@ export class StateService {
     return data;
   }
 
+  // LIMIT is inside the fact-table CTE, before any joins or pair deduplication.
+  async countRecentAttributesSize() {
+    const result = (await this.gateway.query(`WITH recent AS (
+select state_id, metadata_id, attributes_id from states order by state_id desc limit 20000
+), pairs AS (
+select m.entity_id, r.attributes_id, max(r.sampled_rows) sampled_rows
+from (select recent.*, count(*) over () sampled_rows from recent) r
+left join states_meta m on m.metadata_id=r.metadata_id
+group by m.entity_id, r.attributes_id
+), totals AS (
+select pairs.entity_id type,
+sum(case when pairs.entity_id is not null then length(a.shared_attrs) end)/1024.0/1024.0 size,
+max(pairs.sampled_rows) sampled_rows, count(a.attributes_id) attribute_count from pairs
+left join state_attributes a on a.attributes_id=pairs.attributes_id group by pairs.entity_id
+)
+select type, size, max(sampled_rows) over () sampled_rows from totals
+order by case when type is null or attribute_count=0 then 1 else 0 end, size desc limit ${maxRowsInChart}`)) as Array<{
+      sampled_rows: number;
+      type: string;
+      size: number;
+    }>;
+    // A singleton envelope keeps the API's array contract, even with no categories.
+    return [
+      {
+        basis: 'recent-state-ids' as const,
+        rowLimit: 20000,
+        sampledRows: Number(result[0]?.sampled_rows ?? 0),
+        rows: result
+          .filter((row) => row.type !== null && row.size > 0.01)
+          .map((row) => ({ type: row.type, cnt: badRoundFunction(row.size) })),
+      },
+    ];
+  }
+
   async countAttributesSize(): Promise<Array<ICountStats>> {
     const query = `select attr2entity.entity_id type, sum(length(a.shared_attrs))/1024.0/1024.0 size
 from (select distinct state_attributes.attributes_id, states_meta.entity_id from state_attributes, states, states_meta

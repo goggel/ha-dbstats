@@ -4,7 +4,7 @@ import type {RequestOptions} from './requestQueue';
 const count = (path: string) => (options?: RequestOptions) => request<ICountStats>(`/addon-api/${path}`, options);
 export default {
     events: {countEventTypes: count('event/countEventTypes'), countEventsByDomain: count('event/countEventsByDomain')},
-    states: {countStates: count('state/countStates'), countAttributesSize: count('state/countAttributesSize')},
+    states: {countRecentAttributesSize: (options?: RequestOptions) => request<{basis: 'recent-state-ids'; rowLimit: number; sampledRows: number; rows: ICountStats[]}>('/addon-api/state/countRecentAttributesSize', options), countStates: count('state/countStates'), countAttributesSize: count('state/countAttributesSize')},
     statistic: {countLong: count('statistic/long/count'), countShort: count('statistic/short/count')},
     system: {getTableSize: count('system/getTableSize'), getTableRows: count('system/getTableRows'),
         getDbAlerts: (options?: RequestOptions) => request<IShowAlerts>('/addon-api/system/getDbAlerts', options)}

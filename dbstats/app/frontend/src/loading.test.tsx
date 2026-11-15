@@ -1,4 +1,5 @@
 import React from 'react';
+import type {RequestOptions} from './requestQueue';
 import {render, unmountComponentAtNode} from 'react-dom';
 import {act} from 'react-dom/test-utils';
 import {CountStatsChart} from './components/Charts/CountStatsChart';
@@ -79,4 +80,23 @@ it('retains successful charts, shows server timeout, advances queue and retries'
     await act(async () => { container.querySelector('button').click(); });
     expect(container.textContent.match(/Chart result/g)).toHaveLength(3);
     expect(fetch).toHaveBeenCalledTimes(4);
+});
+it('defaults attributes to recent and requests exact only on selection, aborting previous subscription', async () => {
+    const {AttributeSizeChart} = require('./components/Charts/AttributeSizeChart');
+    const client = require('./apiClient').default;
+    const recent = jest.spyOn(client.states, 'countRecentAttributesSize').mockResolvedValue([{sampledRows: 17, rows: [{type: 'sample', cnt: 1}]}]);
+    const exact = jest.spyOn(client.states, 'countAttributesSize').mockResolvedValue([{type: 'exact', cnt: 2}]);
+    await act(async () => { render(<AttributeSizeChart/>, container); });
+    expect(recent).toHaveBeenCalledTimes(1);
+    expect(exact).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('17 most recent state rows');
+    const signal = (recent.mock.calls[0][0] as RequestOptions).signal;
+    await act(async () => { const select = container.querySelector('select'); select.value = 'exact'; select.dispatchEvent(new Event('change', {bubbles: true})); });
+    expect(signal.aborted).toBe(true);
+    expect(exact).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('textarea').value).toBe('exact');
+    await act(async () => { const select = container.querySelector('select'); select.value = 'recent'; select.dispatchEvent(new Event('change', {bubbles: true})); });
+    expect(recent).toHaveBeenCalledTimes(2);
+    expect((exact.mock.calls[0][0] as RequestOptions).signal.aborted).toBe(true);
+    recent.mockRestore(); exact.mockRestore();
 });

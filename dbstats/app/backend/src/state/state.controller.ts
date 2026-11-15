@@ -10,6 +10,11 @@ export class StateController {
     return this.stateService.countStateTypes();
   }
 
+  @Get('countRecentAttributesSize')
+  async countRecentAttributesSize() {
+    return this.stateService.countRecentAttributesSize();
+  }
+
   @Get('countAttributesSize')
   async countAttributesSize() {
     return this.stateService.countAttributesSize();
