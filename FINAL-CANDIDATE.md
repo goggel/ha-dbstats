@@ -1,3 +1,30 @@
+# Native frontend build refinement — COMPLETE
+
+Required base: `f25b85b915ef8585563bf6cf1a017f1cc466a111`. Runtime source/build ref: `99a7cf477a6fc8fc38e4af022b06ece8ce12c3be`. Branch: `t3/native-frontend-build-stage`; isolated worktree: `/Users/benjaminkoster/.t3/worktrees/ha-dbstats/t3-47961f80-0f68f091980663b4`.
+
+New immutable candidates (repository label `https://github.com/goggel/ha-dbstats`, revision above):
+
+| Platform | Image ID | BUILD_ARCH |
+| --- | --- | --- |
+| linux/arm64 | `de30ab28082b6eddd89dfca9d320cad6c19f548c79463ad65e02f5edb1e4d045` | aarch64 |
+| linux/amd64 | `3c9992205a0192a6a6e7bdf70e020cbede07e80707cd993f06620ba440ba4fb5` | amd64 |
+
+All five unchanged scripts passed on each actual ID: `test-image.sh`, `test-nginx-render.cjs`, `test-image-databases.cjs`, `test-image-transport.cjs`, `test-image-domain.cjs`. Strict readonly/WAL/native interruption/start-stop/ingress/assets, native timeout/replacement/recovery, real TLS/socket and complete domain/PG15 behavior remain enforced. Only assertions/fixtures were mounted; application code came from each image. No host ports published. Fixture cleanup remains bounded. Labels/platform/Node 24.22.3 agree; emitted frontend assets and selected event/domain/gateway JS hashes match across both images. Full output, labels and hashes are in `docs/final-candidate-evidence.json` under `nativeFrontendRefinement`.
+
+The Dockerfile builds owned static frontend sources in `FROM --platform=${BUILDPLATFORM}` with an independent manifest-only dependency cache, then shared/frontend sources at the existing sibling paths. Only emitted assets cross into runtime. Backend native modules and runtime retain the same target base, musl/ABI, Node pin and driver inputs. No application sources, dependencies, lockfiles, template/lifecycle, asset-stage values, release metadata or plan metadata changed. The helper retains explicit build-time provenance labels to work around observed Podman stale LABEL-only caching.
+
+[Docker documentation](https://docs.docker.com/build/building/multi-platform/) specifies automatic BUILDPLATFORM and native-stage FROM selection. [Podman documentation](https://docs.podman.io/en/latest/markdown/podman-build.1.html) documents build arguments/platform selection. Actual Podman 6.2.0 client/6.1.3 linux/arm64 server accepted the native FROM for both targets; both frontend logs print `linux/arm64 Node v24.22.3`. CI uses the same pinned multi-platform base index, with no hardcoded native architecture. A Docker engine was not independently exercised for a second engine build.
+
+Native build completed, but its first result reused an old ID with stale provenance; rejected. A fresh source build with explicit labels took 21.778s from completed stage caches and yielded the accepted new arm64 ID. Initial cache-populating native build wall time was approximately 21 minutes (not precisely instrumented); compilation succeeded. For amd64, sampled stage times (including commits) were frontend 980.355s, backend 717.784s. Frontend ci/commit took 224.522s, source copy layers 569.412s, build/commit 170.383s. Backend ci/build/commit took 479.230s and prune/commit 88.213s. The first amd64 build hit the unchanged 1800s bound during final assembly and was terminated. **One evidence-backed assembly continuation**, using the exact completed owned-source native frontend and target backend caches, finished in 109.137s. No opaque app-image import or timeout extension occurred. A cold single-invocation amd64 build under 1800s is not established; storage/layer overhead remains a development-host limitation. The stage dependency cache is structurally independent, though this Podman invocation rebuilt it across target platforms.
+
+`sh scripts/check-app.sh` passed in this checkout: root dependency resolution/audit threshold/builds/backend tests/integration/all three baseline lint checks/routing/clean diff. Existing lint warnings remain. Unchanged dependencies were not reinstalled again. Helper shell syntax and final `git diff --check` passed. All gate timings are recorded in evidence. The final reporting/helper commit follows the runtime source commit; runtime inputs are unchanged.
+
+Backend moderate and legacy frontend advisory findings remain as recorded below. Live HA/Supervisor/browser acceptance still requires an authorized disposable supervised installation. No push, PR, merge, publication, deployment, production DB access, additional checkout or agents.
+
+Everything below is **historical evidence**, superseded for current artifact acceptance by the two new IDs above.
+
+---
+
 # Final candidate — STOPPED
 
 Local composition and arm64 acceptance passed. **Dual-platform acceptance is incomplete:** amd64 build exceeded its 1800-second wall bound during frontend installation. The owned build process was terminated; no new amd64 artifact exists. A responsive bounded amd64 build environment is the remaining local prerequisite. No release/deployment acceptance is claimed.
