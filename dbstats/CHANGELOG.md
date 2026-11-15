@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased (runtime bridge blocked; not release validated)
+
+- Mainline architecture metadata now targets amd64/aarch64. Home Assistant removed 32-bit support in 2025.12; armv7 requires a separately maintained legacy branch.
+
 ## 0.5.12
  - Bump base image to 0.3.23 (bumps driver versions)
  - Bump base nodejs image to 0.2.5

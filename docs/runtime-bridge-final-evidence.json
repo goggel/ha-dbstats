@@ -1,0 +1,513 @@
+{
+  "recordedUtc": "2026-11-15T08:36:09.137707+00:00",
+  "requiredBase": "13c6fac987cdb819e6ec1f43e372a39e7f6ab6d0",
+  "imageSource": "67d78dcad3e3de3322e6741297be7144a8b77f75",
+  "implementationHead": "19b32357025c9c740c17d8afbe6a87de230b7857",
+  "worktree": "/Users/benjaminkoster/.t3/worktrees/ha-dbstats/t3-09dd8835-de2a844dcf64159a",
+  "branch": "t3/final-image-native-acceptance",
+  "images": {
+    "arm64": {
+      "Id": "e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427",
+      "Digest": "sha256:afee6dd2a47ee50bba6791d9605a5f27faeed78659084f07688ddb5d29d8b9f1",
+      "RepoDigests": [
+        "localhost/dbstats-final-owned@sha256:afee6dd2a47ee50bba6791d9605a5f27faeed78659084f07688ddb5d29d8b9f1"
+      ],
+      "Architecture": "arm64",
+      "Os": "linux",
+      "labels": {
+        "io.buildah.version": "1.45.1",
+        "io.dbstats.application.revision": "927ee43f7fe327e0eee2909af73877bd4a44784a",
+        "io.hass.arch": "aarch64",
+        "io.hass.base.image": "hassioaddons/base",
+        "io.hass.base.name": "alpine",
+        "io.hass.base.version": "21.0.11",
+        "io.hass.description": "",
+        "io.hass.name": "",
+        "io.hass.type": "addon",
+        "io.hass.version": "",
+        "maintainer": "Jehy",
+        "org.opencontainers.image.authors": "Jehy",
+        "org.opencontainers.image.created": "",
+        "org.opencontainers.image.description": "",
+        "org.opencontainers.image.documentation": "https://github.com/goggel/ha-dbstats/blob/main/README.md",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "67d78dcad3e3de3322e6741297be7144a8b77f75",
+        "org.opencontainers.image.source": "https://github.com/goggel/ha-dbstats",
+        "org.opencontainers.image.title": "",
+        "org.opencontainers.image.url": "https://jehy.ru",
+        "org.opencontainers.image.vendor": "Jehy",
+        "org.opencontainers.image.version": ""
+      }
+    },
+    "amd64": {
+      "Id": "d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413",
+      "Digest": "sha256:d1db8130840d58b17de53cc67405df04adc6ff824aefa1cf73e3f200e11e7665",
+      "RepoDigests": [
+        "localhost/dbstats-final-owned@sha256:d1db8130840d58b17de53cc67405df04adc6ff824aefa1cf73e3f200e11e7665"
+      ],
+      "Architecture": "amd64",
+      "Os": "linux",
+      "labels": {
+        "io.buildah.version": "1.45.1",
+        "io.dbstats.application.revision": "927ee43f7fe327e0eee2909af73877bd4a44784a",
+        "io.hass.arch": "amd64",
+        "io.hass.base.image": "hassioaddons/base",
+        "io.hass.base.name": "alpine",
+        "io.hass.base.version": "21.0.11",
+        "io.hass.description": "",
+        "io.hass.name": "",
+        "io.hass.type": "addon",
+        "io.hass.version": "",
+        "maintainer": "Jehy",
+        "org.opencontainers.image.authors": "Jehy",
+        "org.opencontainers.image.created": "",
+        "org.opencontainers.image.description": "",
+        "org.opencontainers.image.documentation": "https://github.com/goggel/ha-dbstats/blob/main/README.md",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "67d78dcad3e3de3322e6741297be7144a8b77f75",
+        "org.opencontainers.image.source": "https://github.com/goggel/ha-dbstats",
+        "org.opencontainers.image.title": "",
+        "org.opencontainers.image.url": "https://jehy.ru",
+        "org.opencontainers.image.vendor": "Jehy",
+        "org.opencontainers.image.version": ""
+      }
+    }
+  },
+  "checks": {
+    "backendTests": {
+      "log": "/tmp/dbstats-final-tests.log",
+      "sha256": "244c92993539d66e3d5cca64af5357be8af16acd4655ae0d1ebcc0924b8717e7",
+      "output": "npm notice run @dbstats/backend@1.0.0 test\nnpm notice run jest --runInBand\nPASS src/ha-yaml.spec.ts\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Using database options from env\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Using database options from env\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Using database options from env\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] recorder options not found, gonna try standard database path\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Found standard sqlite file, gonna use it: /var/folders/dm/2h53lxfn37ndj13f8kc8rpyh0000gn/T/dbstats-config-w5CfuK/home-assistant_v2.db\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] recorder options not found, gonna try standard database path\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Found standard sqlite file, gonna use it: /var/folders/dm/2h53lxfn37ndj13f8kc8rpyh0000gn/T/dbstats-config-slnMBg/home-assistant_v2.db\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] recorder options not found, gonna try standard database path\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Found standard sqlite file, gonna use it: /var/folders/dm/2h53lxfn37ndj13f8kc8rpyh0000gn/T/dbstats-config-u735pg/home-assistant_v2.db\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\nPASS src/query-gateway.spec.ts\nPASS src/config.service.spec.ts\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] recorder options not found, gonna try standard database path\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] Found standard sqlite file, gonna use it: /Users/benjaminkoster/.t3/worktrees/ha-dbstats/t3-09dd8835-de2a844dcf64159a/dbstats/app/backend/src/testConfigs/sqlite_file_exists/home-assistant_v2.db\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] recorder options not found, gonna try standard database path\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] database options from env not found, checking config\n[Nest] 76997  - 11/15/2026, 12:17:03 AM     LOG [ConfigService] config file found, parsing\nPASS src/mysql-transport.spec.ts\nPASS src/safe-diagnostics.spec.ts\n\nTest Suites: 5 passed, 5 total\nTests:       58 passed, 58 total\nSnapshots:   0 total\nTime:        1.87 s\nRan all test suites.\n"
+    },
+    "backendBuild": {
+      "log": "/tmp/dbstats-final-build.log",
+      "sha256": "cbe6ceefe66086418753a14191d901a4d7480d5ba6579a1f1d91ba5d4a9694e6",
+      "output": "npm notice run @dbstats/backend@1.0.0 build\nnpm notice run nest build\n"
+    },
+    "lint": {
+      "log": "/tmp/dbstats-final-lint.log",
+      "sha256": "8f6f7c034c1de92dd53b3a9fdbc70378169b1d17a0a59c59ad2c3586459c65c4",
+      "output": "  130:14  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars\n\n\u2716 32 problems (0 errors, 32 warnings)\n"
+    },
+    "sqliteDiagnostic": {
+      "log": "/tmp/dbstats-final-sqlite-integration.log",
+      "sha256": "5b628b7e2d2ce945e2f47247bb9021d32a84892d95ec8bc10a1efa8205b863fa",
+      "output": "npm notice run @dbstats/backend@1.0.0 test:integration\nnpm notice run node test/integration.cjs\nSHM read-mark changed offsets: [ 104 ]\nPASS SQLite 3.52.0: native load, WAL read, rejected write, DB/WAL stable; SHM read-mark-only\n"
+    },
+    "httpIntegration": {
+      "log": "/tmp/dbstats-final-http-integration.log",
+      "sha256": "7af7d63812cfa722deb18a99868d8e5ecb5d5612604cf60ea24f892da93d3f19",
+      "output": "npm notice run @dbstats/backend@1.0.0 test:integration\nnpm notice run node test/integration.cjs\nPASS HTTP: API prefix, Swagger, nested unknown, invalid body, query, graceful shutdown\n"
+    },
+    "routing": {
+      "log": "/tmp/dbstats-final-routing.log",
+      "sha256": "60ff65ce79e1f3ece5959e60d74ae21092a06939e4216c21f42d7a7a706d3eff",
+      "output": "Workflow/config routing agrees: ghcr.io/goggel/dbstats-addon-{arch}; publication gated.\n"
+    },
+    "arm64Strict": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-arm64-assets.log",
+      "sha256": "2510c5c2c58ed747b9afc8e5e6c882325eb28b29db263cc7e470a4c6c8362a92",
+      "output": "{\"node\":\"v24.22.3\",\"sqliteHeader\":\"3.52.0\",\"sqliteRuntime\":\"3.53.4\",\"arch\":\"arm64\"}\n\n3.24.4\nv24.22.3\n11.12.1\nOpenSSL-CLI-absent\n3.5.9\nnginx version: nginx/1.30.6\n3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)\nada-libs-4.0.0-r0\nalpine-baselayout-3.7.2-r1\nalpine-baselayout-data-3.7.2-r1\nalpine-keys-2.6-r0\nalpine-release-3.24.4-r0\napk-tools-3.0.9-r0\nbash-5.3.9-r1\nbrotli-libs-1.2.1-r0\nbusybox-1.37.0-r31\nbusybox-binsh-1.37.0-r31\nc-ares-1.34.9-r0\nca-certificates-20261020-r0\nca-certificates-bundle-20261020-r0\ncurl-8.23.0-r0\nicu-data-en-78.1-r0\nicu-libs-78.1-r0\njq-1.8.2-r0\nlibapk-3.0.9-r0\nlibcrypto3-3.5.9-r0\nlibcurl-8.23.0-r0\nlibgcc-15.2.0-r5\nlibidn2-2.3.8-r0\nlibncursesw-6.6_p20260516-r0\nlibpsl-0.21.5-r3\nlibssl3-3.5.9-r0\nlibstdc++-15.2.0-r5\nlibunistring-1.4.2-r0\nmusl-1.2.6-r3\nmusl-utils-1.2.6-r3\nncurses-terminfo-base-6.6_p20260516-r0\nnghttp2-libs-1.70.0-r0\nnginx-1.30.6-r0\nnodejs-24.22.3-r0\nnpm-11.12.1-r0\noniguruma-6.9.10-r0\npcre2-10.49-r0\nreadline-8.3.3-r1\nscanelf-1.3.9-r1\nsimdjson-4.2.4-r0\nsimdutf-9.0.0-r0\nsqlite-3.53.4-r0\nsqlite-libs-3.53.4-r0\nssl_client-1.37.0-r31\ntzdata-2026f-r0\nzlib-1.3.2-r1\nzstd-libs-1.5.7-r2\n\n{\"node\":\"v24.22.3\",\"arch\":\"arm64\",\"nativeSQLite\":\"3.52.0\",\"packages\":[{\"path\":\"/usr/src/app/node_modules/@nestjs/swagger/node_modules/js-yaml\",\"name\":\"js-yaml\",\"version\":\"5.5.0\"},{\"path\":\"/usr/src/app/node_modules/body-parser\",\"name\":\"body-parser\",\"version\":\"2.4.0\"},{\"path\":\"/usr/src/app/node_modules/express\",\"name\":\"express\",\"version\":\"5.3.0\"},{\"path\":\"/usr/src/app/node_modules/js-yaml\",\"name\":\"js-yaml\",\"version\":\"4.3.2\"},{\"path\":\"/usr/src/app/node_modules/node-gyp\",\"name\":\"node-gyp\",\"version\":\"12.4.0\"},{\"path\":\"/usr/src/app/node_modules/prebuild-install\",\"name\":\"prebuild-install\",\"version\":\"7.1.3\"},{\"path\":\"/usr/src/app/node_modules/prebuild-install/node_modules/tar-fs\",\"name\":\"tar-fs\",\"version\":\"2.1.4\"},{\"path\":\"/usr/src/app/node_modules/sqlite3\",\"name\":\"sqlite3\",\"version\":\"6.0.1\"},{\"path\":\"/usr/src/app/node_modules/tar\",\"name\":\"tar\",\"version\":\"7.5.23\"},{\"path\":\"/usr/src/app/node_modules/typeorm\",\"name\":\"typeorm\",\"version\":\"0.3.31\"}]}\n\nPASS native SQLite interrupt, healthy next query, read-only fixture unchanged\n\nPASS final image ingress allow/deny, HTML prefix, JS/CSS, manifest and favicon\n\n{\"image\":\"e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427\",\"digest\":\"sha256:afee6dd2a47ee50bba6791d9605a5f27faeed78659084f07688ddb5d29d8b9f1\",\"repoDigests\":[\"localhost/dbstats-final-owned@sha256:afee6dd2a47ee50bba6791d9605a5f27faeed78659084f07688ddb5d29d8b9f1\"],\"id\":\"e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427\",\"architecture\":\"arm64\",\"mountedReadonly\":true,\"files\":{\"fixture.db\":[1794730527634.615,\"6725e9c2f4d09abc3d8bd9d916bfc8012b91ef682f8ad5ecf54591ac7c4572df\"],\"fixture.db-shm\":[1794730527635.0298,\"12fc31418864d32d7c33cbdb11401708d5f4169306f1f5507a6dd157fb595217\"],\"fixture.db-wal\":[1794730527635.3013,\"9eaf473acc52ecf7cc9c4df6ef5a220995046c6adf111456257430765072a455\"]},\"startupMs\":3274,\"stopMs\":3283,\"exitCode\":0,\"entrypoint\":true,\"ingress\":true}\n"
+    },
+    "arm64Nginx": {
+      "log": "/tmp/dbstats-final-nginx3.log",
+      "sha256": "a81983bcfc70b29eca1dd76aab4edc005db33d571f0bc15810e6945ecf89a0a6",
+      "output": "ingress_entry api/hassio_ingress/disposable_fixture\nnginx: [warn] duplicate MIME type \"text/html\" in /etc/nginx/nginx.conf:62\nnginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful\n"
+    },
+    "arm64Sql": {
+      "log": "/tmp/dbstats-final-image-sql2.log",
+      "sha256": "55ed5c15d58cdbe9e7fd5872085524d910ce34cc32e40fb2e28cfcba86ffe39a",
+      "output": "PASS MariaDB connection/read\nPASS PostgreSQL connection/read\n\nPASS MariaDB HTTP timeout metric, following metric progress and no orphan SQL\nPASS gateway MariaDB real timeout, two sessions, replacement, healthy query and resource baseline\nPASS gateway MySQL real timeout, two sessions, replacement, healthy query and resource baseline\nPASS gateway PostgreSQL real timeout, two sessions, replacement, healthy query and resource baseline\n\n{\"image\":\"e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427\",\"fixtures\":[\"dbstats-final-sql-38751-mariadb\",\"dbstats-final-sql-38751-postgres\",\"dbstats-final-sql-38751-mysql\"],\"publishedPorts\":false,\"contracts\":true,\"cancellation\":true}\n"
+    },
+    "amd64Strict": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-amd64-acceptance.log",
+      "sha256": "e6f487596c12e224b9d1221342945cb940e5a499e36aa94c6d7f4a3203886e00",
+      "output": "{\"node\":\"v24.22.3\",\"sqliteHeader\":\"3.52.0\",\"sqliteRuntime\":\"3.53.4\",\"arch\":\"x64\"}\n\n3.24.4\nv24.22.3\n11.12.1\nOpenSSL-CLI-absent\n3.5.9\nnginx version: nginx/1.30.6\n3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)\nada-libs-4.0.0-r0\nalpine-baselayout-3.7.2-r1\nalpine-baselayout-data-3.7.2-r1\nalpine-keys-2.6-r0\nalpine-release-3.24.4-r0\napk-tools-3.0.9-r0\nbash-5.3.9-r1\nbrotli-libs-1.2.1-r0\nbusybox-1.37.0-r31\nbusybox-binsh-1.37.0-r31\nc-ares-1.34.9-r0\nca-certificates-20261020-r0\nca-certificates-bundle-20261020-r0\ncurl-8.23.0-r0\nicu-data-en-78.1-r0\nicu-libs-78.1-r0\njq-1.8.2-r0\nlibapk-3.0.9-r0\nlibcrypto3-3.5.9-r0\nlibcurl-8.23.0-r0\nlibgcc-15.2.0-r5\nlibidn2-2.3.8-r0\nlibncursesw-6.6_p20260516-r0\nlibpsl-0.21.5-r3\nlibssl3-3.5.9-r0\nlibstdc++-15.2.0-r5\nlibunistring-1.4.2-r0\nmusl-1.2.6-r3\nmusl-utils-1.2.6-r3\nncurses-terminfo-base-6.6_p20260516-r0\nnghttp2-libs-1.70.0-r0\nnginx-1.30.6-r0\nnodejs-24.22.3-r0\nnpm-11.12.1-r0\noniguruma-6.9.10-r0\npcre2-10.49-r0\nreadline-8.3.3-r1\nscanelf-1.3.9-r1\nsimdjson-4.2.4-r0\nsimdutf-9.0.0-r0\nsqlite-3.53.4-r0\nsqlite-libs-3.53.4-r0\nssl_client-1.37.0-r31\ntzdata-2026f-r0\nzlib-1.3.2-r1\nzstd-libs-1.5.7-r2\n\n{\"node\":\"v24.22.3\",\"arch\":\"x64\",\"nativeSQLite\":\"3.52.0\",\"packages\":[{\"path\":\"/usr/src/app/node_modules/@nestjs/swagger/node_modules/js-yaml\",\"name\":\"js-yaml\",\"version\":\"5.5.0\"},{\"path\":\"/usr/src/app/node_modules/body-parser\",\"name\":\"body-parser\",\"version\":\"2.4.0\"},{\"path\":\"/usr/src/app/node_modules/express\",\"name\":\"express\",\"version\":\"5.3.0\"},{\"path\":\"/usr/src/app/node_modules/js-yaml\",\"name\":\"js-yaml\",\"version\":\"4.3.2\"},{\"path\":\"/usr/src/app/node_modules/node-gyp\",\"name\":\"node-gyp\",\"version\":\"12.4.0\"},{\"path\":\"/usr/src/app/node_modules/prebuild-install\",\"name\":\"prebuild-install\",\"version\":\"7.1.3\"},{\"path\":\"/usr/src/app/node_modules/prebuild-install/node_modules/tar-fs\",\"name\":\"tar-fs\",\"version\":\"2.1.4\"},{\"path\":\"/usr/src/app/node_modules/sqlite3\",\"name\":\"sqlite3\",\"version\":\"6.0.1\"},{\"path\":\"/usr/src/app/node_modules/tar\",\"name\":\"tar\",\"version\":\"7.5.23\"},{\"path\":\"/usr/src/app/node_modules/typeorm\",\"name\":\"typeorm\",\"version\":\"0.3.31\"}]}\n\nPASS native SQLite interrupt, healthy next query, read-only fixture unchanged\n\nPASS final image ingress allow/deny, HTML prefix, JS/CSS, manifest and favicon\n\n{\"image\":\"d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413\",\"digest\":\"sha256:d1db8130840d58b17de53cc67405df04adc6ff824aefa1cf73e3f200e11e7665\",\"repoDigests\":[\"localhost/dbstats-final-owned@sha256:d1db8130840d58b17de53cc67405df04adc6ff824aefa1cf73e3f200e11e7665\"],\"id\":\"d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413\",\"architecture\":\"amd64\",\"mountedReadonly\":true,\"files\":{\"fixture.db\":[1794730634383.9526,\"6725e9c2f4d09abc3d8bd9d916bfc8012b91ef682f8ad5ecf54591ac7c4572df\"],\"fixture.db-shm\":[1794730634384.338,\"b758027151e3f783f42e36f62fe0fa7bdc5dc61a9a0d907cd124d185de101751\"],\"fixture.db-wal\":[1794730634384.6064,\"69055cda0a5ee21576b2339951d4508d46cd2e88be9d64b9e51e7bc21802d8ba\"]},\"startupMs\":13487,\"stopMs\":3890,\"exitCode\":0,\"entrypoint\":true,\"ingress\":true}\n"
+    },
+    "amd64Nginx": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-amd64-nginx.log",
+      "sha256": "a81983bcfc70b29eca1dd76aab4edc005db33d571f0bc15810e6945ecf89a0a6",
+      "output": "ingress_entry api/hassio_ingress/disposable_fixture\nnginx: [warn] duplicate MIME type \"text/html\" in /etc/nginx/nginx.conf:62\nnginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful\n"
+    },
+    "amd64Sql": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-amd64-sql.log",
+      "sha256": "05476472ece446135967fd45f45f542cd220bdd84dfdaa50d125770d519e802e",
+      "output": "PASS MariaDB connection/read\nPASS PostgreSQL connection/read\n\nPASS MariaDB HTTP timeout metric, following metric progress and no orphan SQL\nPASS gateway MariaDB real timeout, two sessions, replacement, healthy query and resource baseline\nPASS gateway MySQL real timeout, two sessions, replacement, healthy query and resource baseline\nPASS gateway PostgreSQL real timeout, two sessions, replacement, healthy query and resource baseline\n\n{\"image\":\"d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413\",\"fixtures\":[\"dbstats-final-sql-43370-mariadb\",\"dbstats-final-sql-43370-postgres\",\"dbstats-final-sql-43370-mysql\"],\"publishedPorts\":false,\"contracts\":true,\"cancellation\":true}\n"
+    },
+    "peerResolution": {
+      "backendLegacyPeerDeps": false,
+      "sharedLegacyPeerDeps": false,
+      "ciOverrideSearch": "No matches in .github for legacy peer / force overrides",
+      "frontendLegacyPeerDeps": true
+    },
+    "nativeBuild": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-native-prefix.log",
+      "imageSource": "67d78dcad3e3de3322e6741297be7144a8b77f75"
+    },
+    "artifactProvenance": [
+      {
+        "image": "e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427",
+        "upstreamSha256": "2b6df9d51a3fccd849c5c0be329c01639cc3534b4e8943d4f291a62bce536892",
+        "arch": "arm64",
+        "entrypoint": true,
+        "index": true
+      },
+      {
+        "image": "d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413",
+        "upstreamSha256": "2b6df9d51a3fccd849c5c0be329c01639cc3534b4e8943d4f291a62bce536892",
+        "arch": "x64",
+        "entrypoint": true,
+        "index": true
+      }
+    ],
+    "fixtureTargetValidation": {
+      "exitCode": 0,
+      "output": "PASS synthetic production/arbitrary fixture URL rejection"
+    },
+    "arm64Transport": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-arm64-transport.log",
+      "sha256": "39a6618bdeccbe01ede5e7019dff499e909285d3232fc8411c001daca27a490d",
+      "output": "TLS rejection: HANDSHAKE_SSL_ERROR\nTLS rejection: HANDSHAKE_SSL_ERROR\nPlaintext rejection: ER_SECURE_TRANSPORT_REQUIRED\nPASS actual TLS: trusted CA, wrong CA, untrusted CA, required transport\nPASS actual Unix socket selection\nPASS required TLS rejects a server without TLS support\n\n{\"image\":\"e46c70ff49363c6b1113393151b93be949e4cb63e57061ea5c424f5eebe3b427\",\"publishedPorts\":false,\"actualFinalImageTransport\":true}\n",
+      "setup": "Host-generated disposable certificates; isolated namespace, no published ports; approved effective-options helper and actual TLS/socket assertions execute inside selected final image."
+    },
+    "amd64Transport": {
+      "exitCode": 0,
+      "log": "/tmp/dbstats-final-amd64-transport.log",
+      "sha256": "8cac0662adf44a9f09dd5b5113e82ffacb403cfa5b956a9a63c9b831a0a55a0d",
+      "output": "TLS rejection: HANDSHAKE_SSL_ERROR\nTLS rejection: HANDSHAKE_SSL_ERROR\nPlaintext rejection: ER_SECURE_TRANSPORT_REQUIRED\nPASS actual TLS: trusted CA, wrong CA, untrusted CA, required transport\nPASS actual Unix socket selection\nPASS required TLS rejects a server without TLS support\n\n{\"image\":\"d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413\",\"publishedPorts\":false,\"actualFinalImageTransport\":true}\n",
+      "setup": "Host-generated disposable certificates; isolated namespace, no published ports; approved effective-options helper and actual TLS/socket assertions execute inside selected final image."
+    }
+  },
+  "productionAudit": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {
+      "glob": {
+        "name": "glob",
+        "severity": "moderate",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1244013,
+            "name": "glob",
+            "dependency": "glob",
+            "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+            "url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-400"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=9.0.0 <=14.0.1"
+          },
+          "minimatch"
+        ],
+        "effects": [
+          "typeorm"
+        ],
+        "range": "9.0.0 - 14.0.1",
+        "nodes": [
+          "node_modules/typeorm/node_modules/glob"
+        ],
+        "fixAvailable": {
+          "name": "typeorm",
+          "version": "1.1.3",
+          "isSemVerMajor": true
+        }
+      },
+      "minimatch": {
+        "name": "minimatch",
+        "severity": "moderate",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1244623,
+            "name": "minimatch",
+            "dependency": "minimatch",
+            "title": "minimatch has potential denial of service via globparts amplification",
+            "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-405"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=7.0.0 <11.0.1"
+          }
+        ],
+        "effects": [
+          "glob"
+        ],
+        "range": "7.0.0 - 11.0.0",
+        "nodes": [
+          "node_modules/minimatch"
+        ],
+        "fixAvailable": {
+          "name": "typeorm",
+          "version": "1.1.3",
+          "isSemVerMajor": true
+        }
+      },
+      "typeorm": {
+        "name": "typeorm",
+        "severity": "moderate",
+        "isDirect": true,
+        "via": [
+          "glob"
+        ],
+        "effects": [],
+        "range": "0.3.18-dev.022d2b5 - 0.3.31",
+        "nodes": [
+          "node_modules/typeorm"
+        ],
+        "fixAvailable": {
+          "name": "typeorm",
+          "version": "1.1.3",
+          "isSemVerMajor": true
+        }
+      }
+    },
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 3,
+        "high": 0,
+        "critical": 0,
+        "total": 3
+      },
+      "dependencies": {
+        "prod": 288,
+        "dev": 516,
+        "optional": 4,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 805
+      }
+    }
+  },
+  "productionTree": {
+    "command": "podman run --rm -v <unchanged-source-lock>:/usr/src/app/package-lock.json:ro --entrypoint npm <arm64-immutable-ID> ls --all --omit=dev --json",
+    "exitCode": 0,
+    "sha256": "cfa6aafce75f91fb464040d963584112a8a00a982072db8146145dc9521fabcb"
+  },
+  "nativePaths": {
+    "npmPolicy": "allowScripts.sqlite3=true; sqlite3 install script is prebuild-install -r napi || node-gyp rebuild; prebuild-install 7.1.3 rc.js consumes npm_config_build_from_source=true (or sqlite3)",
+    "prebuilt": {
+      "platform": "linuxmusl-arm64",
+      "installerResult": "found cached prebuild; Successfully installed prebuilt binary",
+      "finalBinary": {
+        "file": "/usr/src/app/node_modules/sqlite3/build/Release/node_sqlite3.node",
+        "sha256": "cc56ac512b0b57160bad60235759aaf9222e05b9e3cec0aa2d0808986b36813c"
+      }
+    },
+    "sourceBuild": {
+      "context": "separate disposable cached arm64 builder 641429f0427f, same Node/musl/sqlite3 package; not relabeled as final-image acceptance",
+      "command": "npm_config_build_from_source=true node ../prebuild-install/bin.js -r napi --verbose; node ../node-gyp/bin/node-gyp.js rebuild; native memory query",
+      "outputTail": "      |                            ^\nIn function 'sqlite3ColumnSetColl':\nlto1: note: source object is likely at address zero\n  COPY Release/node_sqlite3.node\nmake: Leaving directory '/build/backend/node_modules/sqlite3/build'\ngyp info ok \narm64 v24.22.3 3.52.0 { v: '3.53.4' }\n64e25c3926253d8e1f71d29525d0ef903d13312e9284eafafb017dbe09591fa0  build/Release/node_sqlite3.node"
+    },
+    "amd64SourceProbe": {
+      "status": "compile/link/native load/query PASS; optional image export timed out at COMMIT",
+      "dockerfile": "FROM d13ddbdd1fb6d49a82bd8c2b87fb57a20f65beb56f8cc21e80e2107c061cf413 AS selected\nFROM c53c5d6e978f\nCOPY --from=selected /usr/src/app/node_modules /probe/node_modules\nWORKDIR /probe/node_modules/sqlite3\nRUN npm_config_build_from_source=true node ../prebuild-install/bin.js -r napi --verbose; node ../node-gyp/bin/node-gyp.js rebuild && node -e 'const s=require(\"./\");const db=new s.Database(\":memory:\");db.get(\"SELECT sqlite_version() AS version\",(e,r)=>{if(e)throw e;console.log(JSON.stringify({arch:process.arch,node:process.version,header:s.VERSION,query:r}));db.close()})' && sha256sum build/Release/node_sqlite3.node\n",
+      "log": "/tmp/dbstats-final-amd64-source.log",
+      "processObservation": "cc1 at 99.2% CPU after 4m15s; no fatal error observed at that snapshot",
+      "setup": "Actual final-image production modules copied between containers of identical linux/amd64 Node 24/musl ABI; no host-built binaries. Separate cached native toolchain; not a final artifact.",
+      "overallBuildExit": "TIMEOUT600",
+      "elapsedSeconds": 600.0135709169999,
+      "outputTail": "  CXX(target) Release/obj.target/node_sqlite3/src/node_sqlite3.o\n  CXX(target) Release/obj.target/node_sqlite3/src/statement.o\n  SOLINK_MODULE(target) Release/obj.target/node_sqlite3.node\nIn function 'sqlite3Strlen30',\n    inlined from 'sqlite3ColumnSetColl' at Release/obj/gen/sqlite-autoconf-3520000/sqlite3.c:126188:10:\nRelease/obj/gen/sqlite-autoconf-3520000/sqlite3.c:36144:28: warning: 'strlen' reading 1 or more bytes from a region of size 0 [-Wstringop-overread]\n36144 |   return 0x3fffffff & (int)strlen(z);\n      |                            ^\nIn function 'sqlite3ColumnSetColl':\nlto1: note: source object is likely at address zero\n  COPY Release/node_sqlite3.node\nmake: Leaving directory '/probe/node_modules/sqlite3/build'\ngyp info ok \n{\"arch\":\"x64\",\"node\":\"v24.22.3\",\"header\":\"3.52.0\",\"query\":{\"version\":\"3.53.4\"}}\na21e865fd74e01720c317d4ffac11866ae64a8f26cbc4a0d8fd52efd9fbc5e80  build/Release/node_sqlite3.node\n[2/2] COMMIT localhost/dbstats-final-owned:amd64-source-probe",
+      "logSha256": "ba787c8572b8c33515c1f8a53c3e97c6213b0daebd1cb60ed1a7983727522b54",
+      "compiledBinarySha256": "a21e865fd74e01720c317d4ffac11866ae64a8f26cbc4a0d8fd52efd9fbc5e80",
+      "probeImageRetained": false
+    }
+  },
+  "timing": {
+    "priorLogs": "/tmp/plan003-image-build.log; /tmp/plan003-image-amd64.log",
+    "nativeCachedProbe": {
+      "node": "v24.22.3",
+      "arch": "aarch64",
+      "npm": "11.12.1",
+      "gpp": "15.2.0",
+      "python": "3.14.10",
+      "npmPingMs": 274
+    },
+    "cpuProbe": {
+      "iterations": 20000000,
+      "arm64Ms": 156.507562,
+      "amd64Ms": 2658.394127,
+      "interpretation": "Controlled CPU loop shows emulation cost; not a total-build slowdown estimate."
+    },
+    "infrastructure": "10-second podman info and 15-second VM SSH probes timed out during native work, then recovered. Host swap observation 13796.06 MiB used; not proven sole cause. Old stage logs contain ~50\u2013120s layer gaps.",
+    "amd64BuildSeconds": 860.177812541
+  },
+  "amd64": {
+    "buildExit": 0,
+    "buildSeconds": 860.177812541,
+    "intermediateLayers": false,
+    "productionAuditExit": 0,
+    "productionTreeExit": 0,
+    "productionAudit": {
+      "auditReportVersion": 2,
+      "vulnerabilities": {
+        "glob": {
+          "name": "glob",
+          "severity": "moderate",
+          "isDirect": false,
+          "via": [
+            {
+              "source": 1244013,
+              "name": "glob",
+              "dependency": "glob",
+              "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+              "url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+              "severity": "moderate",
+              "cwe": [
+                "CWE-400"
+              ],
+              "cvss": {
+                "score": 0,
+                "vectorString": null
+              },
+              "range": ">=9.0.0 <=14.0.1"
+            },
+            "minimatch"
+          ],
+          "effects": [
+            "typeorm"
+          ],
+          "range": "9.0.0 - 14.0.1",
+          "nodes": [
+            "node_modules/typeorm/node_modules/glob"
+          ],
+          "fixAvailable": {
+            "name": "typeorm",
+            "version": "1.1.3",
+            "isSemVerMajor": true
+          }
+        },
+        "minimatch": {
+          "name": "minimatch",
+          "severity": "moderate",
+          "isDirect": false,
+          "via": [
+            {
+              "source": 1244623,
+              "name": "minimatch",
+              "dependency": "minimatch",
+              "title": "minimatch has potential denial of service via globparts amplification",
+              "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+              "severity": "moderate",
+              "cwe": [
+                "CWE-405"
+              ],
+              "cvss": {
+                "score": 0,
+                "vectorString": null
+              },
+              "range": ">=7.0.0 <11.0.1"
+            }
+          ],
+          "effects": [
+            "glob"
+          ],
+          "range": "7.0.0 - 11.0.0",
+          "nodes": [
+            "node_modules/minimatch"
+          ],
+          "fixAvailable": {
+            "name": "typeorm",
+            "version": "1.1.3",
+            "isSemVerMajor": true
+          }
+        },
+        "typeorm": {
+          "name": "typeorm",
+          "severity": "moderate",
+          "isDirect": true,
+          "via": [
+            "glob"
+          ],
+          "effects": [],
+          "range": "0.3.18-dev.022d2b5 - 0.3.31",
+          "nodes": [
+            "node_modules/typeorm"
+          ],
+          "fixAvailable": {
+            "name": "typeorm",
+            "version": "1.1.3",
+            "isSemVerMajor": true
+          }
+        }
+      },
+      "metadata": {
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 3,
+          "high": 0,
+          "critical": 0,
+          "total": 3
+        },
+        "dependencies": {
+          "prod": 288,
+          "dev": 516,
+          "optional": 4,
+          "peer": 0,
+          "peerOptional": 0,
+          "total": 805
+        }
+      }
+    },
+    "prebuiltOutput": " prebuild-install info begin Prebuild-install version 7.1.3\nprebuild-install info looking for local prebuild @ prebuilds/sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\n(node:9) [DEP0176] DeprecationWarning: fs.R_OK is deprecated, use fs.constants.R_OK instead\n(Use `node --trace-deprecation ...` to show where the warning was created)\nprebuild-install info npm cache directory missing, creating it...\nprebuild-install info looking for cached prebuild @ /root/.npm/_prebuilds/71f2a7-sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\nprebuild-install http request GET https://github.com/TryGhost/node-sqlite3/releases/download/v6.0.1/sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\nprebuild-install http 200 https://github.com/TryGhost/node-sqlite3/releases/download/v6.0.1/sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\nprebuild-install info downloading to @ /root/.npm/_prebuilds/71f2a7-sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz.9-81a0adbc6b4ea.tmp\nprebuild-install info renaming to @ /root/.npm/_prebuilds/71f2a7-sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\nprebuild-install info unpacking @ /root/.npm/_prebuilds/71f2a7-sqlite3-v6.0.1-napi-v6-linuxmusl-x64.tar.gz\nprebuild-install info unpack resolved to /usr/src/app/node_modules/sqlite3/build/Release/node_sqlite3.node\nprebuild-install info install Successfully installed prebuilt binary!\n\n{\"arch\":\"x64\",\"selectedPrebuiltHash\":\"5e1ad6cd482d1e4226d49ed77628328eeb7c169e56fd7387c6ae93b798b8f0bb\",\"downloadedPrebuiltMatches\":true}\n"
+  },
+  "pending": [
+    "Live HA/Supervisor/browser acceptance: no real HA deployment or operator credentials used.",
+    "Frontend legacy graph remains outside this task (75 install audit records: 20 low, 16 moderate, 35 high, 4 critical; raw totals are not bundled exploitability counts).",
+    "Backend production audit retains three moderate records: glob, minimatch, typeorm; no reachability conclusion or sweeping 1.x upgrade.",
+    "Independent review of these scoped commits was not performed (no agents authorized). Publication/deployment remain disabled, not attempted."
+  ],
+  "failuresAndCorrections": [
+    "Inherited 600-second build timeouts stopped at frontend install/build or backend build; new bounded probes found layer gaps and intermittent VM responsiveness.",
+    "Native source probe compiled successfully but query quoting failed; next attempt could not bind macOS /tmp. Reassessed using actual errors, moved only throwaway probe to shared home path; third compile/load/query probe passed.",
+    "First full final-image ingress HTML prefix assertion failed; replaced non-recursive two-step nginx asset substitutions with one-pass absolute ingress paths. Same actual image acceptance then passed.",
+    "First isolated SQL namespace run failed bad-password rejection. PostgreSQL initdb loopback auth was made scram-sha-256 in the disposable fixture; both actual final images then passed unchanged source contract/cancellation tests."
+  ],
+  "scope": {
+    "changedFiles": [
+      "dbstats/app/backend/src/query-gateway.spec.ts",
+      "dbstats/rootfs/etc/cont-init.d/nginx.sh",
+      "dbstats/rootfs/etc/nginx/nginx.conf",
+      "scripts/test-image-databases.cjs",
+      "scripts/test-image.cjs",
+      "scripts/test-nginx-render.cjs",
+      "docs/runtime-bridge-final-evidence.json",
+      "docs/runtime-bridge-final-status.md",
+      "scripts/test-image-transport.cjs"
+    ],
+    "locksChanged": false,
+    "domainFixturesChanged": false,
+    "publicationEnabled": false,
+    "otherCheckoutsEdited": false,
+    "runtimeInputsUnchangedAfterImageSource": "Subsequent commits change host acceptance scripts and reporting only."
+  },
+  "limitations": [
+    "Source compilation/load/query was demonstrated on both target architectures in separate toolchain fixtures. Strict mounted read-only WAL acceptance was run against the two actual final images with their identified prebuilt binaries; source-built modules were not substituted into those final artifacts.",
+    "Optional amd64 source-probe image export timed out at COMMIT after compiler/linker/native query passed. No standalone source-probe image retained.",
+    "Local acceptance release name/date/version build arguments retained empty defaults; no release metadata or published manifest acceptance."
+  ],
+  "cleanup": {
+    "taskNamedRuntimeSqlTlsContainersRemaining": false,
+    "sourceProbeExternalBuildContainerRemaining": false,
+    "otherExecutorContainersCachesImagesRemoved": false,
+    "throwawayHomeProbeRemoved": true
+  }
+}

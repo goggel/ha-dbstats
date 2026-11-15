@@ -3,13 +3,11 @@
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
 ![Supports armhf Architecture][armhf-shield]
-![Supports armv7 Architecture][armv7-shield]
 ![Supports i386 Architecture][i386-shield]
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [armhf-shield]: https://img.shields.io/badge/armhf-no-red.svg
-[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-no-red.svg
 
 This addon allows to check database usage and find out what's eating up your space.
@@ -21,12 +19,12 @@ Addon will try to autodetect your database options, but if it fails, you can use
 
 ## Installation on HAOS/supervised
 
-Navigate to the [main repository page](https://github.com/jehy/hass-addons/tree/master)
+Navigate to the [main repository page](https://github.com/goggel/ha-dbstats/tree/main)
 and push the button to add it to HA, or add it manually:
 
 1. Navigate to addons page on your HA installation
 2. Press three dots in the top right corner
-3. Add repository `https://github.com/jehy/hass-addons` to addon repositories
+3. Add repository `https://github.com/goggel/ha-dbstats` to addon repositories
 4. Install addon from addons page
 5. Start addon and visit its page
 

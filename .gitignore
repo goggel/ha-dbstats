@@ -1,0 +1,4 @@
+dbstats/app/**/node_modules/
+dbstats/app/**/dist/
+dbstats/app/**/build/
+dbstats/app/**/coverage/
