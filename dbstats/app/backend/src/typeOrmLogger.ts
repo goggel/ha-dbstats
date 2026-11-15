@@ -21,7 +21,11 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
   /**
    * Logs query and parameters used in it.
    */
+  // Keep TypeORM call signatures; SQL, parameters and runner context stay private.
   logQuery(query: string, parameters?: unknown[], queryRunner?: QueryRunner) {
+    void query;
+    void parameters;
+    void queryRunner;
     if (
       this._options === 'all' ||
       this._options === true ||
@@ -40,6 +44,10 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
     parameters?: unknown[],
     queryRunner?: QueryRunner,
   ) {
+    void error;
+    void query;
+    void parameters;
+    void queryRunner;
     if (
       this._options === 'all' ||
       this._options === true ||
@@ -58,6 +66,9 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
     parameters?: unknown[],
     queryRunner?: QueryRunner,
   ) {
+    void query;
+    void parameters;
+    void queryRunner;
     this._logger.log(`Database query slow; execution time: ${time}ms`);
   }
 
@@ -65,6 +76,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
    * Logs events from the schema build process.
    */
   logSchemaBuild(message: string, queryRunner?: QueryRunner) {
+    void queryRunner;
     if (
       this._options === 'all' ||
       (this._options instanceof Array && this._options.indexOf('schema') !== -1)
@@ -77,6 +89,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
    * Logs events from the migrations run process.
    */
   logMigration(message: string, queryRunner?: QueryRunner) {
+    void queryRunner;
     this._logger.log(message);
   }
 
@@ -89,6 +102,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
     message: unknown,
     queryRunner?: QueryRunner,
   ) {
+    void queryRunner;
     switch (level) {
       case 'log':
         if (
@@ -127,7 +141,7 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
   protected stringifyParams(parameters: unknown[]) {
     try {
       return JSON.stringify(parameters);
-    } catch (error) {
+    } catch {
       // most probably circular objects in parameters
       return parameters;
     }
