@@ -33,3 +33,9 @@ This addon helps to check database usage and find out what's eating up your spac
 [armhf-shield]: https://img.shields.io/badge/armhf-no-red.svg
 [i386-shield]: https://img.shields.io/badge/i386-no-red.svg
 
+
+## Reviewed candidate testing
+
+For the separate **DBStats Test** add-on, see [candidate publication and HA installation](dbstats-test/README.md).
+Candidates require a manual workflow run after review/merge and public images for both architectures.
+Stable DbStats remains a separate installation.

@@ -1,3 +1,4 @@
+const engine = process.env.CONTAINER_ENGINE || 'podman';
 // Disposable SQL fixtures share an isolated network namespace; no published ports.
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -8,7 +9,7 @@ const prefix = `dbstats-composed-domain-${process.pid}`;
 const worker = `${prefix}-worker`;
 const created = [];
 function run(args, timeout = 60000) {
-  const result = spawnSync('podman', args, { encoding: 'utf8', timeout });
+  const result = spawnSync(engine, args, { encoding: 'utf8', timeout });
   assert.equal(result.status, 0, result.error?.message || (result.stdout + result.stderr));
   return result.stdout;
 }
@@ -27,7 +28,7 @@ function start(name, args) {
     const deadline = Date.now() + 90000;
     let ready = false;
     while (Date.now() < deadline) {
-      ready = databases.every(db => spawnSync('podman', ['exec', db.name, ...db.ready], { timeout: 3000, stdio: 'ignore' }).status === 0);
+      ready = databases.every(db => spawnSync(engine, ['exec', db.name, ...db.ready], { timeout: 3000, stdio: 'ignore' }).status === 0);
       if (ready) break;
       await new Promise(r => setTimeout(r, 1000));
     }
@@ -35,6 +36,6 @@ function start(name, args) {
     console.log(run(['exec', worker, 'node', 'test/domain/app-drivers.cjs'], 240000));
     console.log(JSON.stringify({ image, fixtures: databases.map(d => d.name), publishedPorts: false, domain: true }));
   } finally {
-    for (const name of created.reverse()) spawnSync('podman', ['rm', '-f', '--volumes', name], { timeout: 15000, stdio: 'ignore' });
+    for (const name of created.reverse()) spawnSync(engine, ['rm', '-f', '--volumes', name], { timeout: 15000, stdio: 'ignore' });
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

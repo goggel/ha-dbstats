@@ -1,3 +1,4 @@
+const engine = process.env.CONTAINER_ENGINE || 'podman';
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -8,7 +9,7 @@ const sqlite = require('../dbstats/app/backend/node_modules/sqlite3');
 const image = process.argv[2];
 assert.ok(image);
 function podman(args, timeout = 120000) {
-  const r = spawnSync('podman', args, { encoding: 'utf8', timeout });
+  const r = spawnSync(engine, args, { encoding: 'utf8', timeout });
   assert.equal(r.status, 0, r.error?.message || r.stderr);
   return r.stdout;
 }
@@ -60,9 +61,9 @@ const close = db => new Promise((r,j) => db.close(e=>e?j(e):r()));
   assert.deepEqual(snapshot(),before);
   console.log(JSON.stringify({image, digest:info.Digest, repoDigests:info.RepoDigests, id:info.Id, architecture:info.Architecture, mountedReadonly:true, files:before, startupMs, stopMs:Date.now()-started, exitCode:stopped.State.ExitCode, entrypoint:true, ingress:true}));
  } finally {
-  spawnSync('podman',['rm','-f',name],{timeout:15000,stdio:'ignore'});
-  spawnSync('podman',['rm','-f',supervisor],{timeout:15000,stdio:'ignore'});
-  spawnSync('podman',['network','rm',network],{timeout:15000,stdio:'ignore'});
+  spawnSync(engine,['rm','-f',name],{timeout:15000,stdio:'ignore'});
+  spawnSync(engine,['rm','-f',supervisor],{timeout:15000,stdio:'ignore'});
+  spawnSync(engine,['network','rm',network],{timeout:15000,stdio:'ignore'});
   await close(writer);fs.rmSync(dir,{recursive:true,force:true});
  }
 })().catch(e=>{console.error(e.message);process.exitCode=1});

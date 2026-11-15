@@ -1,0 +1,92 @@
+name: Publish reviewed candidate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+# Serialize versions, including reruns and dispatches from different refs.
+concurrency:
+  group: dbstats-candidate-publication
+  cancel-in-progress: false
+jobs:
+  candidate:
+    if: github.repository == 'goggel/ha-dbstats'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CONTAINER_ENGINE: docker
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Validate source and frontend tests
+        run: |
+          sh scripts/check-app.sh
+          CI=true npm --prefix dbstats/app/frontend test -- --watchAll=false --runInBand
+          node scripts/check-candidate.cjs
+      - name: Read validated metadata
+        id: metadata
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: node scripts/candidate-metadata.cjs "$ARCH" >> "$GITHUB_OUTPUT"
+      - name: Build single native artifact
+        env:
+          IMAGE: ${{ steps.metadata.outputs.image }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+          ARCH: ${{ matrix.arch }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          docker buildx build --load --platform "$PLATFORM" \
+            --build-arg "BUILD_REF=$GITHUB_SHA" --build-arg "BUILD_ARCH=$ARCH" \
+            --build-arg "BUILD_VERSION=$VERSION" --build-arg BUILD_REPOSITORY=goggel/ha-dbstats \
+            --tag "$IMAGE" dbstats
+          docker image inspect "$IMAGE" --format '{{.Id}}' > tested-image-id
+      - name: Pull disposable fixture prerequisites
+        run: |
+          for image in mariadb:11.8 mysql:8.4 postgres:17 postgres:16 postgres:15; do
+            docker pull "docker.io/library/$image"
+          done
+      - name: Test exact image
+        env:
+          IMAGE: ${{ steps.metadata.outputs.image }}
+        run: |
+          node scripts/test-nginx-render.cjs "$IMAGE"
+          node scripts/test-image.cjs "$IMAGE"
+          node scripts/test-image-databases.cjs "$IMAGE"
+          node scripts/test-image-transport.cjs "$IMAGE"
+          node scripts/test-image-domain.cjs "$IMAGE"
+      - name: Publish tested artifact once
+        env:
+          IMAGE: ${{ steps.metadata.outputs.image }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          export DOCKER_CONFIG="$RUNNER_TEMP/candidate-docker-auth"
+          mkdir -p "$DOCKER_CONFIG"
+          trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+          test "$(docker image inspect "$IMAGE" --format '{{.Id}}')" = "$(cat tested-image-id)"
+          test "$(docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$GITHUB_SHA"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          python3 scripts/check-candidate-absent.py "$IMAGE"
+          docker push "$IMAGE"
+          digest=$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}}')
+          {
+            printf '### Tested candidate: %s\n\n' "$IMAGE"
+            printf 'Digest: `%s`\n\nSource: `%s`\n\n' "$digest" "$GITHUB_SHA"
+            printf 'Wait for both architectures. Make both GHCR packages public, reload the HA store and install DBStats Test. See dbstats-test/README.md. No HA deployment performed.\n'
+          } >> "$GITHUB_STEP_SUMMARY"

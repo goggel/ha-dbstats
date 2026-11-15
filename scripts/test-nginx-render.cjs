@@ -1,3 +1,4 @@
+const engine = process.env.CONTAINER_ENGINE || 'podman';
 // Controlled fixture only: actual init script with disposable supervisor values.
 const {spawnSync} = require('node:child_process');
 const assert = require('node:assert/strict');
@@ -11,5 +12,5 @@ function bashio::dns.host(){ echo 127.0.0.1; }
 source /etc/cont-init.d/nginx.sh
 ! grep -q '%%' /etc/nginx/nginx.conf
 nginx -t`;
-const result = spawnSync('podman',['run','--rm','--entrypoint','/bin/bash','--pull=never',image,'-c',script],{stdio:'inherit',timeout:120000});
+const result = spawnSync(engine,['run','--rm','--entrypoint','/bin/bash','--pull=never',image,'-c',script],{stdio:'inherit',timeout:120000});
 process.exitCode = result.status === 0 ? 0 : 1;

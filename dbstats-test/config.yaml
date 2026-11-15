@@ -1,0 +1,23 @@
+name: DBStats Test
+version: 0.6.0-rc.1
+slug: dbstats_test
+description: Reviewed candidate database stats for Home Assistant
+image: ghcr.io/goggel/dbstats-test-{arch}
+url: https://github.com/goggel/ha-dbstats/blob/master/dbstats-test/README.md
+ingress: true
+ingress_port: 6060
+ingress_stream: true
+panel_icon: mdi:database
+init: false
+homeassistant: 2022.1.1
+hassio_api: true
+options:
+  connectionString: ""
+schema:
+  connectionString: str
+arch:
+  - aarch64
+  - amd64
+map:
+  - homeassistant_config:ro
+  - share:ro

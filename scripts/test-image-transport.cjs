@@ -1,3 +1,4 @@
+const engine = process.env.CONTAINER_ENGINE || 'podman';
 // Run the approved transport assertions inside an actual final image.
 // Certificate/container setup stays on the host; no runtime tools are installed.
 const assert = require('node:assert/strict');
@@ -17,7 +18,7 @@ function run(command, args, timeout = 60000) {
   return r.stdout;
 }
 function start(name, args) {
-  run('podman', ['run', '-d', '--pull=never', '--name', name, ...args]);
+  run(engine, ['run', '-d', '--pull=never', '--name', name, ...args]);
   created.push(name);
 }
 (async () => {
@@ -31,7 +32,7 @@ function start(name, args) {
     start(server, [`--network=container:${worker}`, '-v', `${dir}:/certs:ro`, '-e', 'MARIADB_RANDOM_ROOT_PASSWORD=1', '-e', 'MARIADB_DATABASE=dbstats_plan004_fixture', '-e', 'MARIADB_USER=dbstats_fixture', '-e', 'MARIADB_PASSWORD=disposable_fixture_only', 'docker.io/library/mariadb:11.8', '--ssl-ca=/certs/ca.crt', '--ssl-cert=/certs/server.crt', '--ssl-key=/certs/server.key', '--require-secure-transport=ON']);
     let ready = false;
     for (let i = 0; i < 45; i++) {
-      ready = spawnSync('podman', ['exec', server, 'healthcheck.sh', '--connect'], { timeout: 3000, stdio: 'ignore' }).status === 0;
+      ready = spawnSync(engine, ['exec', server, 'healthcheck.sh', '--connect'], { timeout: 3000, stdio: 'ignore' }).status === 0;
       if (ready) break;
       await new Promise(r => setTimeout(r, 1000));
     }
@@ -45,10 +46,10 @@ function start(name, args) {
     const end = source.indexOf('  } finally {\n    if (created)');
     assert.ok(begin > 0 && end > begin, 'Approved fixture assertion boundaries');
     const script = `${header}\nconst dir=fs.mkdtempSync(path.join(os.tmpdir(),'final-transport-'));for(const n of ['ca.crt','wrong.crt'])fs.copyFileSync('/certs/'+n,dir+'/'+n);\n${helper}\n(async()=>{try{${source.slice(begin,end)}}finally{fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e.code||e.message);process.exitCode=1});`;
-    console.log(run('podman', ['exec', worker, 'node', '-e', script]));
+    console.log(run(engine, ['exec', worker, 'node', '-e', script]));
     console.log(JSON.stringify({ image, publishedPorts: false, actualFinalImageTransport: true }));
   } finally {
-    for (const name of created.reverse()) spawnSync('podman', ['rm', '-f', '--volumes', name], { timeout: 15000, stdio: 'ignore' });
+    for (const name of created.reverse()) spawnSync(engine, ['rm', '-f', '--volumes', name], { timeout: 15000, stdio: 'ignore' });
     fs.rmSync(dir, { recursive: true, force: true });
   }
 })().catch(e => { console.error(e.message); process.exitCode = 1; });

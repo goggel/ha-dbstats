@@ -18,6 +18,7 @@ for package in shared backend frontend; do
   npm --prefix "dbstats/app/$package" run lint:check
 done
 node scripts/check-routing.cjs
+node scripts/check-candidate.cjs
 test -f dbstats/app/backend/dist/backend/src/main.js
 test -f dbstats/app/frontend/build/index.html
 git diff --check
