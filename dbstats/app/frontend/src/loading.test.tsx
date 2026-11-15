@@ -38,6 +38,18 @@ it('renders timeout as terminal and stops elapsed updates', async () => {
     expect(container.textContent).toBe(settled);
     jest.useRealTimers();
 });
+it('exposes complete category labels for manual copying outside the SVG chart', async () => {
+    const labels = [`sensor.${'long_entity_name_'.repeat(80)}é`, 'domain.<example>&"'];
+    const api = jest.fn().mockResolvedValue(labels.map(type => ({type, cnt: 1})));
+    await act(async () => { render(<CountStatsChart title="Entities" api={api}/>, container); });
+    const field = container.querySelector('textarea');
+    expect(field.getAttribute('aria-label')).toBe('Entities: full category labels');
+    expect(field.readOnly).toBe(true);
+    expect(field.value).toBe(labels.join('\n'));
+    expect(field.closest('details').open).toBe(false);
+    field.select();
+    expect(field.value.slice(field.selectionStart, field.selectionEnd)).toBe(labels.join('\n'));
+});
 it('mounts eight charts plus alerts with nine logical calls', async () => {
     const apis = Array.from({length: 9}, () => jest.fn().mockResolvedValue([]));
     await act(async () => { render(<>{apis.slice(0, 8).map((api, i) => <CountStatsChart key={i} title="Count" api={api}/>)}<AlertSet api={apis[8]}/></>, container); });
