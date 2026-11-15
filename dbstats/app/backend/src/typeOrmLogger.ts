@@ -1,3 +1,4 @@
+import { databaseErrorDiagnostics } from './database-error-diagnostics';
 import type { Logger as TypeOrmLogger, QueryRunner } from 'typeorm';
 import type { LoggerOptions as TypeOrmLoggerOptions } from 'typeorm/logger/LoggerOptions';
 import { Logger } from '@nestjs/common';
@@ -39,12 +40,11 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
    * Logs query that is failed.
    */
   logQueryError(
-    error: string,
+    error: string | Error,
     query: string,
     parameters?: unknown[],
     queryRunner?: QueryRunner,
   ) {
-    void error;
     void query;
     void parameters;
     void queryRunner;
@@ -53,7 +53,9 @@ export class TypeOrmLoggerContainer implements TypeOrmLogger {
       this._options === true ||
       (this._options instanceof Array && this._options.indexOf('error') !== -1)
     ) {
-      this._logger.warn('Database query failed');
+      this._logger.warn(
+        `Database query failed${databaseErrorDiagnostics(error)}`,
+      );
     }
   }
 

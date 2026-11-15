@@ -14,9 +14,12 @@ export function domainQuery(engine: string, limit: number): string {
       break;
     case 'mysql':
     case 'mariadb':
-      domain = `CASE WHEN JSON_VALID(d.shared_data) THEN
-        CASE WHEN JSON_TYPE(JSON_EXTRACT(d.shared_data, '$.domain')) = 'STRING'
-        THEN JSON_UNQUOTE(JSON_EXTRACT(d.shared_data, '$.domain')) END END`;
+      // Recorder payload bytes are UTF-8 even when the column has binary charset.
+      // Reject lossy conversion before JSON parsing; never repair invalid JSON.
+      domain = `CASE WHEN HEX(CONVERT(d.shared_data USING utf8mb4)) = HEX(d.shared_data)
+        AND JSON_VALID(CONVERT(d.shared_data USING utf8mb4)) THEN
+        CASE WHEN JSON_TYPE(JSON_EXTRACT(CONVERT(d.shared_data USING utf8mb4), '$.domain')) = 'STRING'
+        THEN JSON_UNQUOTE(JSON_EXTRACT(CONVERT(d.shared_data USING utf8mb4), '$.domain')) END END`;
       key = 'HEX(domain)';
       break;
     case 'postgres':
