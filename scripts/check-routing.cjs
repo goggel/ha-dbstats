@@ -16,7 +16,7 @@ assert.match(builder.with.args, /--target dbstats/);
 assert.equal(config.image, 'ghcr.io/goggel/dbstats-addon-{arch}');
 assert.equal(repo.url, 'https://github.com/goggel/ha-dbstats');
 assert.equal(config.url, `${repo.url}/blob/main/dbstats/README.md`);
-for (const file of ['README.MD', 'dbstats/README.md']) {
+for (const file of ['README.MD', 'dbstats/README.MD']) {
   const text = fs.readFileSync(file, 'utf8');
   assert.ok(!text.includes('github.com/jehy/hass-addons'));
 }
