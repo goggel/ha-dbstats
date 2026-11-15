@@ -1,4 +1,4 @@
-import { ConfigService } from './config.service';
+import { chartRowLimit, ConfigService } from './config.service';
 import * as path from 'path';
 
 class FixtureConfig extends ConfigService {
@@ -138,5 +138,30 @@ describe('Config Service', () => {
         statement_timeout: 180_000, // one minute for a query to complete
       },
     });
+  });
+});
+
+describe('chart output bounds', () => {
+  it.each([
+    undefined,
+    '',
+    '0',
+    '-1',
+    '2.5',
+    '5junk',
+    'NaN',
+    'Infinity',
+    '9007199254740992',
+  ])('defaults invalid input %s to 20', (value) => {
+    expect(chartRowLimit(value)).toBe(20);
+  });
+  it.each([
+    ['1', 1],
+    ['7', 7],
+    ['20', 20],
+    ['30', 20],
+    ['100000', 20],
+  ])('bounds configured input %s', (value, expected) => {
+    expect(chartRowLimit(value as string)).toBe(expected);
   });
 });

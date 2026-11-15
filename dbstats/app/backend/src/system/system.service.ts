@@ -40,17 +40,19 @@ export class SystemService {
         )) as Array<{ cnt: number }>;
         res.push({ type: tables[i].name, cnt: rows[0].cnt });
       }
-      return res.sort((a, b) => b.cnt - a.cnt);
+      return res
+        .sort((a, b) => b.cnt - a.cnt)
+        .slice(0, configProvider().maxRowsInChart);
     }
     if (dbType === 'postgres') {
       const data = await this.gateway.query(`SELECT relname type,n_live_tup cnt
               FROM pg_stat_user_tables
-            ORDER BY n_live_tup DESC`);
+            ORDER BY n_live_tup DESC LIMIT ${configProvider().maxRowsInChart}`);
       return data as Array<ICountStats>;
     }
     if (dbType === 'mysql') {
       const data = await this.gateway.query(
-        `SELECT table_name type, TABLE_ROWS cnt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = DATABASE() order by TABLE_ROWS DESC`,
+        `SELECT table_name type, TABLE_ROWS cnt FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = DATABASE() order by TABLE_ROWS DESC LIMIT ${configProvider().maxRowsInChart}`,
       );
       return data as Array<ICountStats>;
     }
@@ -75,7 +77,9 @@ export class SystemService {
         )) as Array<{ cnt: number }>;
         res.push({ type: tables[i].name, cnt: rows[0].cnt });
       }
-      return res.sort((a, b) => b.cnt - a.cnt);
+      return res
+        .sort((a, b) => b.cnt - a.cnt)
+        .slice(0, configProvider().maxRowsInChart);
     }
     if (dbType === 'postgres') {
       const data = await this.gateway.query(`select
@@ -83,7 +87,7 @@ export class SystemService {
             pg_total_relation_size(quote_ident(table_name))/1024/1024 cnt
         from information_schema.tables
         where table_schema = 'public'
-        order by pg_total_relation_size(quote_ident(table_name)) desc;`);
+        order by pg_total_relation_size(quote_ident(table_name)) desc LIMIT ${configProvider().maxRowsInChart};`);
       return data as Array<ICountStats>;
     }
     if (dbType === 'mysql') {
@@ -92,7 +96,7 @@ export class SystemService {
      table_name type, 
      round(((data_length + index_length) / 1024 / 1024), 2) cnt 
 FROM information_schema.TABLES  WHERE table_schema = DATABASE()
-ORDER BY (data_length + index_length) DESC;`);
+ORDER BY (data_length + index_length) DESC LIMIT ${configProvider().maxRowsInChart};`);
       return data as Array<ICountStats>;
     }
     throw new BadRequestException(

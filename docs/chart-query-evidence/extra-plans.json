@@ -1,0 +1,1054 @@
+[
+  {
+    "engine": "11.8.9-MariaDB-ubu2404",
+    "rows_per_fact": 300000,
+    "plans": {
+      "events": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.01867722,
+          "filesort": {
+            "sort_key": "count(0) desc",
+            "temporary_table": {
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "ALL",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "loops": 1,
+                    "rows": 4,
+                    "cost": 0.0115068,
+                    "filtered": 100
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_events_event_type_id_time_fired_ts"
+                    ],
+                    "key": "ix_events_event_type_id_time_fired_ts",
+                    "key_length": "5",
+                    "used_key_parts": [
+                      "event_type_id"
+                    ],
+                    "ref": [
+                      "owned_research.m.event_type_id"
+                    ],
+                    "loops": 4,
+                    "rows": 1,
+                    "cost": 0.00717042,
+                    "filtered": 100,
+                    "using_index": true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "statistics": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.02027048,
+          "filesort": {
+            "sort_key": "count(0) desc",
+            "temporary_table": {
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "index",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "key": "ix_statistics_meta_statistic_id",
+                    "key_length": "1023",
+                    "used_key_parts": [
+                      "statistic_id"
+                    ],
+                    "loops": 1,
+                    "rows": 4,
+                    "cost": 0.00723266,
+                    "filtered": 100,
+                    "using_index": true
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_statistics_statistic_id_start_ts"
+                    ],
+                    "key": "ix_statistics_statistic_id_start_ts",
+                    "key_length": "5",
+                    "used_key_parts": [
+                      "metadata_id"
+                    ],
+                    "ref": [
+                      "owned_research.m.id"
+                    ],
+                    "loops": 4,
+                    "rows": 11,
+                    "cost": 0.01303782,
+                    "filtered": 100,
+                    "using_index": true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "statistics_short_term": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.02027048,
+          "filesort": {
+            "sort_key": "count(0) desc",
+            "temporary_table": {
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "index",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "key": "ix_statistics_meta_statistic_id",
+                    "key_length": "1023",
+                    "used_key_parts": [
+                      "statistic_id"
+                    ],
+                    "loops": 1,
+                    "rows": 4,
+                    "cost": 0.00723266,
+                    "filtered": 100,
+                    "using_index": true
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_statistics_short_term_statistic_id_start_ts"
+                    ],
+                    "key": "ix_statistics_short_term_statistic_id_start_ts",
+                    "key_length": "5",
+                    "used_key_parts": [
+                      "metadata_id"
+                    ],
+                    "ref": [
+                      "owned_research.m.id"
+                    ],
+                    "loops": 4,
+                    "rows": 11,
+                    "cost": 0.01303782,
+                    "filtered": 100,
+                    "using_index": true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "domain": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.106801864,
+          "filesort": {
+            "sort_key": "sum(refs.ref_count) desc, hex(case when hex(convert(d.shared_data using utf8mb4)) = hex(d.shared_data) and json_valid(convert(d.shared_data using utf8mb4)) then case when json_type(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) = 'STRING' then json_unquote(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) end end)",
+            "temporary_table": {
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "d",
+                    "access_type": "ALL",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "loops": 1,
+                    "rows": 2,
+                    "cost": 0.0111808,
+                    "filtered": 100,
+                    "attached_condition": "case when hex(convert(d.shared_data using utf8mb4)) = hex(d.shared_data) and json_valid(convert(d.shared_data using utf8mb4)) then case when json_type(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) = 'STRING' then json_unquote(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) end end is not null and octet_length(case when hex(convert(d.shared_data using utf8mb4)) = hex(d.shared_data) and json_valid(convert(d.shared_data using utf8mb4)) then case when json_type(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) = 'STRING' then json_unquote(json_extract(convert(d.shared_data using utf8mb4),'$.domain')) end end) > 0"
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "<derived3>",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "key0"
+                    ],
+                    "key": "key0",
+                    "key_length": "5",
+                    "used_key_parts": [
+                      "data_id"
+                    ],
+                    "ref": [
+                      "owned_research.d.data_id"
+                    ],
+                    "loops": 2,
+                    "rows": 1,
+                    "cost": 0.095621064,
+                    "filtered": 100,
+                    "materialized": {
+                      "lateral": 1,
+                      "query_block": {
+                        "select_id": 3,
+                        "cost": 0.010268412,
+                        "nested_loop": [
+                          {
+                            "table": {
+                              "table_name": "events",
+                              "access_type": "ref",
+                              "possible_keys": [
+                                "ix_events_data_id"
+                              ],
+                              "key": "ix_events_data_id",
+                              "key_length": "5",
+                              "used_key_parts": [
+                                "data_id"
+                              ],
+                              "ref": [
+                                "owned_research.d.data_id"
+                              ],
+                              "loops": 1,
+                              "rows": 11,
+                              "cost": 0.003259455,
+                              "filtered": 100,
+                              "attached_condition": "`events`.data_id is not null",
+                              "using_index": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "table_rows": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.01423506,
+          "nested_loop": [
+            {
+              "read_sorted_file": {
+                "filesort": {
+                  "sort_key": "information_schema.`TABLES`.TABLE_ROWS desc",
+                  "table": {
+                    "table_name": "TABLES",
+                    "access_type": "ALL",
+                    "key": "TABLE_SCHEMA",
+                    "loops": 1,
+                    "cost": 0.01423506,
+                    "attached_condition": "information_schema.`TABLES`.TABLE_SCHEMA = 'owned_research'",
+                    "open_full_table": true,
+                    "scanned_databases": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "table_size": {
+        "query_block": {
+          "select_id": 1,
+          "cost": 0.01423506,
+          "nested_loop": [
+            {
+              "read_sorted_file": {
+                "filesort": {
+                  "sort_key": "information_schema.`TABLES`.DATA_LENGTH + information_schema.`TABLES`.INDEX_LENGTH desc",
+                  "table": {
+                    "table_name": "TABLES",
+                    "access_type": "ALL",
+                    "key": "TABLE_SCHEMA",
+                    "loops": 1,
+                    "cost": 0.01423506,
+                    "attached_condition": "information_schema.`TABLES`.TABLE_SCHEMA = 'owned_research'",
+                    "open_full_table": true,
+                    "scanned_databases": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "engine": "8.4.13",
+    "rows_per_fact": 300000,
+    "plans": {
+      "events": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "12082.45"
+          },
+          "ordering_operation": {
+            "using_filesort": true,
+            "grouping_operation": {
+              "using_temporary_table": true,
+              "using_filesort": false,
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "ALL",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "rows_examined_per_scan": 4,
+                    "rows_produced_per_join": 4,
+                    "filtered": "100.00",
+                    "cost_info": {
+                      "read_cost": "0.25",
+                      "eval_cost": "0.40",
+                      "prefix_cost": "0.65",
+                      "data_read_per_join": "4K"
+                    },
+                    "used_columns": [
+                      "event_type_id",
+                      "event_type"
+                    ]
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_events_event_type_id_time_fired_ts"
+                    ],
+                    "key": "ix_events_event_type_id_time_fired_ts",
+                    "used_key_parts": [
+                      "event_type_id"
+                    ],
+                    "key_length": "5",
+                    "ref": [
+                      "owned_research.m.event_type_id"
+                    ],
+                    "rows_examined_per_scan": 30037,
+                    "rows_produced_per_join": 120149,
+                    "filtered": "100.00",
+                    "using_index": true,
+                    "cost_info": {
+                      "read_cost": "66.87",
+                      "eval_cost": "12014.93",
+                      "prefix_cost": "12082.45",
+                      "data_read_per_join": "2M"
+                    },
+                    "used_columns": [
+                      "event_id",
+                      "event_type_id"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "statistics": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "72486.47"
+          },
+          "ordering_operation": {
+            "using_temporary_table": true,
+            "using_filesort": true,
+            "grouping_operation": {
+              "using_filesort": false,
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "index",
+                    "possible_keys": [
+                      "PRIMARY",
+                      "ix_statistics_meta_statistic_id"
+                    ],
+                    "key": "ix_statistics_meta_statistic_id",
+                    "used_key_parts": [
+                      "statistic_id"
+                    ],
+                    "key_length": "1023",
+                    "rows_examined_per_scan": 4,
+                    "rows_produced_per_join": 4,
+                    "filtered": "100.00",
+                    "using_index": true,
+                    "cost_info": {
+                      "read_cost": "0.25",
+                      "eval_cost": "0.40",
+                      "prefix_cost": "0.65",
+                      "data_read_per_join": "4K"
+                    },
+                    "used_columns": [
+                      "id",
+                      "statistic_id"
+                    ]
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_statistics_statistic_id_start_ts"
+                    ],
+                    "key": "ix_statistics_statistic_id_start_ts",
+                    "used_key_parts": [
+                      "metadata_id"
+                    ],
+                    "key_length": "5",
+                    "ref": [
+                      "owned_research.m.id"
+                    ],
+                    "rows_examined_per_scan": 180224,
+                    "rows_produced_per_join": 720896,
+                    "filtered": "100.00",
+                    "using_index": true,
+                    "cost_info": {
+                      "read_cost": "396.23",
+                      "eval_cost": "72089.60",
+                      "prefix_cost": "72486.48",
+                      "data_read_per_join": "16M"
+                    },
+                    "used_columns": [
+                      "id",
+                      "metadata_id"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "statistics_short_term": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "36244.06"
+          },
+          "ordering_operation": {
+            "using_temporary_table": true,
+            "using_filesort": true,
+            "grouping_operation": {
+              "using_filesort": false,
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "m",
+                    "access_type": "index",
+                    "possible_keys": [
+                      "PRIMARY",
+                      "ix_statistics_meta_statistic_id"
+                    ],
+                    "key": "ix_statistics_meta_statistic_id",
+                    "used_key_parts": [
+                      "statistic_id"
+                    ],
+                    "key_length": "1023",
+                    "rows_examined_per_scan": 4,
+                    "rows_produced_per_join": 4,
+                    "filtered": "100.00",
+                    "using_index": true,
+                    "cost_info": {
+                      "read_cost": "0.25",
+                      "eval_cost": "0.40",
+                      "prefix_cost": "0.65",
+                      "data_read_per_join": "4K"
+                    },
+                    "used_columns": [
+                      "id",
+                      "statistic_id"
+                    ]
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "f",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "ix_statistics_short_term_statistic_id_start_ts"
+                    ],
+                    "key": "ix_statistics_short_term_statistic_id_start_ts",
+                    "used_key_parts": [
+                      "metadata_id"
+                    ],
+                    "key_length": "5",
+                    "ref": [
+                      "owned_research.m.id"
+                    ],
+                    "rows_examined_per_scan": 90112,
+                    "rows_produced_per_join": 360448,
+                    "filtered": "100.00",
+                    "using_index": true,
+                    "cost_info": {
+                      "read_cost": "198.61",
+                      "eval_cost": "36044.80",
+                      "prefix_cost": "36244.06",
+                      "data_read_per_join": "8M"
+                    },
+                    "used_columns": [
+                      "id",
+                      "metadata_id"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "domain": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "1050.45"
+          },
+          "ordering_operation": {
+            "using_filesort": true,
+            "grouping_operation": {
+              "using_temporary_table": true,
+              "using_filesort": false,
+              "nested_loop": [
+                {
+                  "table": {
+                    "table_name": "d",
+                    "access_type": "ALL",
+                    "possible_keys": [
+                      "PRIMARY"
+                    ],
+                    "rows_examined_per_scan": 2,
+                    "rows_produced_per_join": 2,
+                    "filtered": "100.00",
+                    "cost_info": {
+                      "read_cost": "0.25",
+                      "eval_cost": "0.20",
+                      "prefix_cost": "0.45",
+                      "data_read_per_join": "48"
+                    },
+                    "used_columns": [
+                      "data_id",
+                      "shared_data"
+                    ],
+                    "attached_condition": "(((case when ((hex(convert(`owned_research`.`d`.`shared_data` using utf8mb4)) = hex(`owned_research`.`d`.`shared_data`)) and json_valid(convert(`owned_research`.`d`.`shared_data` using utf8mb4))) then (case when (json_type(json_extract(convert(`owned_research`.`d`.`shared_data` using utf8mb4),'$.domain')) = 'STRING') then json_unquote(json_extract(convert(`owned_research`.`d`.`shared_data` using utf8mb4),'$.domain')) end) end) is not null) and (length((case when ((hex(convert(`owned_research`.`d`.`shared_data` using utf8mb4)) = hex(`owned_research`.`d`.`shared_data`)) and json_valid(convert(`owned_research`.`d`.`shared_data` using utf8mb4))) then (case when (json_type(json_extract(convert(`owned_research`.`d`.`shared_data` using utf8mb4),'$.domain')) = 'STRING') then json_unquote(json_extract(convert(`owned_research`.`d`.`shared_data` using utf8mb4),'$.domain')) end) end)) > 0))"
+                  }
+                },
+                {
+                  "table": {
+                    "table_name": "refs",
+                    "access_type": "ref",
+                    "possible_keys": [
+                      "<auto_key0>"
+                    ],
+                    "key": "<auto_key0>",
+                    "used_key_parts": [
+                      "data_id"
+                    ],
+                    "key_length": "5",
+                    "ref": [
+                      "owned_research.d.data_id"
+                    ],
+                    "rows_examined_per_scan": 1500,
+                    "rows_produced_per_join": 3000,
+                    "filtered": "100.00",
+                    "cost_info": {
+                      "read_cost": "750.00",
+                      "eval_cost": "300.00",
+                      "prefix_cost": "1050.45",
+                      "data_read_per_join": "70K"
+                    },
+                    "used_columns": [
+                      "data_id",
+                      "ref_count"
+                    ],
+                    "materialized_from_subquery": {
+                      "using_temporary_table": true,
+                      "dependent": false,
+                      "cacheable": true,
+                      "query_block": {
+                        "select_id": 3,
+                        "cost_info": {
+                          "query_cost": "30041.42"
+                        },
+                        "grouping_operation": {
+                          "using_filesort": false,
+                          "table": {
+                            "table_name": "events",
+                            "access_type": "range",
+                            "possible_keys": [
+                              "ix_events_data_id"
+                            ],
+                            "key": "ix_events_data_id",
+                            "used_key_parts": [
+                              "data_id"
+                            ],
+                            "key_length": "5",
+                            "rows_examined_per_scan": 150000,
+                            "rows_produced_per_join": 150000,
+                            "filtered": "100.00",
+                            "using_index": true,
+                            "cost_info": {
+                              "read_cost": "15041.42",
+                              "eval_cost": "15000.00",
+                              "prefix_cost": "30041.42",
+                              "data_read_per_join": "3M"
+                            },
+                            "used_columns": [
+                              "event_id",
+                              "data_id"
+                            ],
+                            "attached_condition": "(`owned_research`.`events`.`data_id` is not null)"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "table_rows": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "48.71"
+          },
+          "ordering_operation": {
+            "using_temporary_table": true,
+            "using_filesort": true,
+            "nested_loop": [
+              {
+                "table": {
+                  "table_name": "cat",
+                  "access_type": "index",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "name",
+                  "used_key_parts": [
+                    "name"
+                  ],
+                  "key_length": "194",
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 1,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "0.25",
+                    "eval_cost": "0.10",
+                    "prefix_cost": "0.35",
+                    "data_read_per_join": "224"
+                  },
+                  "used_columns": [
+                    "id"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "sch",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY",
+                    "catalog_id"
+                  ],
+                  "key": "catalog_id",
+                  "used_key_parts": [
+                    "catalog_id",
+                    "name"
+                  ],
+                  "key_length": "202",
+                  "ref": [
+                    "mysql.cat.id",
+                    "const"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 1,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "0.25",
+                    "eval_cost": "0.10",
+                    "prefix_cost": "0.70",
+                    "data_read_per_join": "256"
+                  },
+                  "used_columns": [
+                    "id",
+                    "catalog_id",
+                    "name"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "tbl",
+                  "access_type": "ref",
+                  "possible_keys": [
+                    "schema_id"
+                  ],
+                  "key": "schema_id",
+                  "used_key_parts": [
+                    "schema_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.sch.id"
+                  ],
+                  "rows_examined_per_scan": 33,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "9.83",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "13.85",
+                    "data_read_per_join": "1M"
+                  },
+                  "used_columns": [
+                    "id",
+                    "schema_id",
+                    "name",
+                    "type",
+                    "engine",
+                    "collation_id",
+                    "hidden",
+                    "se_private_id",
+                    "tablespace_id",
+                    "partition_type"
+                  ],
+                  "attached_condition": "((0 <> can_access_table(`mysql`.`sch`.`name`,`mysql`.`tbl`.`name`)) and (0 <> is_visible_dd_object(`mysql`.`tbl`.`hidden`)))"
+                }
+              },
+              {
+                "table": {
+                  "table_name": "col",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.tbl.collation_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "25.47",
+                    "data_read_per_join": "7K"
+                  },
+                  "used_columns": [
+                    "id"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "ts",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.tbl.tablespace_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "37.09",
+                    "data_read_per_join": "233K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "se_private_data"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "stat",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "schema_name",
+                    "table_name"
+                  ],
+                  "key_length": "388",
+                  "ref": [
+                    "const",
+                    "mysql.tbl.name"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "48.71",
+                    "data_read_per_join": "15K"
+                  },
+                  "used_columns": [
+                    "schema_name",
+                    "table_name",
+                    "table_rows",
+                    "cached_time"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "table_size": {
+        "query_block": {
+          "select_id": 1,
+          "cost_info": {
+            "query_cost": "48.71"
+          },
+          "ordering_operation": {
+            "using_temporary_table": true,
+            "using_filesort": true,
+            "nested_loop": [
+              {
+                "table": {
+                  "table_name": "cat",
+                  "access_type": "index",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "name",
+                  "used_key_parts": [
+                    "name"
+                  ],
+                  "key_length": "194",
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 1,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "0.25",
+                    "eval_cost": "0.10",
+                    "prefix_cost": "0.35",
+                    "data_read_per_join": "224"
+                  },
+                  "used_columns": [
+                    "id"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "sch",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY",
+                    "catalog_id"
+                  ],
+                  "key": "catalog_id",
+                  "used_key_parts": [
+                    "catalog_id",
+                    "name"
+                  ],
+                  "key_length": "202",
+                  "ref": [
+                    "mysql.cat.id",
+                    "const"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 1,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "0.25",
+                    "eval_cost": "0.10",
+                    "prefix_cost": "0.70",
+                    "data_read_per_join": "256"
+                  },
+                  "used_columns": [
+                    "id",
+                    "catalog_id",
+                    "name"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "tbl",
+                  "access_type": "ref",
+                  "possible_keys": [
+                    "schema_id"
+                  ],
+                  "key": "schema_id",
+                  "used_key_parts": [
+                    "schema_id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.sch.id"
+                  ],
+                  "rows_examined_per_scan": 33,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "9.83",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "13.85",
+                    "data_read_per_join": "1M"
+                  },
+                  "used_columns": [
+                    "id",
+                    "schema_id",
+                    "name",
+                    "type",
+                    "engine",
+                    "collation_id",
+                    "hidden",
+                    "se_private_id",
+                    "tablespace_id",
+                    "partition_type"
+                  ],
+                  "attached_condition": "((0 <> can_access_table(`mysql`.`sch`.`name`,`mysql`.`tbl`.`name`)) and (0 <> is_visible_dd_object(`mysql`.`tbl`.`hidden`)))"
+                }
+              },
+              {
+                "table": {
+                  "table_name": "col",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.tbl.collation_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "using_index": true,
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "25.47",
+                    "data_read_per_join": "7K"
+                  },
+                  "used_columns": [
+                    "id"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "ts",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "id"
+                  ],
+                  "key_length": "8",
+                  "ref": [
+                    "mysql.tbl.tablespace_id"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "37.09",
+                    "data_read_per_join": "233K"
+                  },
+                  "used_columns": [
+                    "id",
+                    "se_private_data"
+                  ]
+                }
+              },
+              {
+                "table": {
+                  "table_name": "stat",
+                  "access_type": "eq_ref",
+                  "possible_keys": [
+                    "PRIMARY"
+                  ],
+                  "key": "PRIMARY",
+                  "used_key_parts": [
+                    "schema_name",
+                    "table_name"
+                  ],
+                  "key_length": "388",
+                  "ref": [
+                    "const",
+                    "mysql.tbl.name"
+                  ],
+                  "rows_examined_per_scan": 1,
+                  "rows_produced_per_join": 33,
+                  "filtered": "100.00",
+                  "cost_info": {
+                    "read_cost": "8.30",
+                    "eval_cost": "3.32",
+                    "prefix_cost": "48.71",
+                    "data_read_per_join": "15K"
+                  },
+                  "used_columns": [
+                    "schema_name",
+                    "table_name",
+                    "data_length",
+                    "index_length",
+                    "cached_time"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+]

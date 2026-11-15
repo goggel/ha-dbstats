@@ -37,6 +37,7 @@ function DatabaseStats() {
                             <CardHeader title="Generic database stats"></CardHeader>
                             <CardContent>
                                 <Alert severity="info">If you are unfamiliar with HA tables, you can read about them <Link href="https://data.home-assistant.io/docs/data">here</Link></Alert>
+                                <Alert severity="info">Charts show at most 20 categories. Table row counts are estimates on MySQL/MariaDB and PostgreSQL; SQLite counts rows exactly. Table sizes reflect database allocation. Other charts aggregate all history; limiting output does not reduce that scan.</Alert>
                                 <AlertSet api={apiClient.system.getDbAlerts}></AlertSet>
                                 <CountStatsChart api={apiClient.system.getTableRows}
                                                  title="Number of rows in tables"/>
