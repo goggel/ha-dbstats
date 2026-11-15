@@ -201,7 +201,7 @@ export class QueryGateway {
     let runner: QueryRunner;
     try {
       runner = this.source.createQueryRunner();
-    } catch (error) {
+    } catch {
       this.leave();
       throw new ServiceUnavailableException({
         code: 'QUERY_FAILED',

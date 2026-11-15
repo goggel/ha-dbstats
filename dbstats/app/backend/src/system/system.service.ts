@@ -142,7 +142,7 @@ ORDER BY (data_length + index_length) DESC;`);
       if (dbVersion.length > 42) {
         dbVersion = dbVersion.substring(0, 42).trim() + '...';
       }
-    } catch (err) {
+    } catch {
       this.logger.warn('Failed to get database version');
     }
     alerts.push({
