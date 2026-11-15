@@ -95,6 +95,11 @@ async function fixture(type, options) {
 }
 (async () => {
   await fixture('sqlite', { database: path.join(dir, 'dbstats_domain_006a.sqlite') });
+  if (process.env.DOMAIN_IMAGE_FIXTURE === 'owned-isolated-v1') {
+    for (const [type, port] of [['mariadb',33618], ['mysql',33684], ['postgres',35616], ['postgres',35615]])
+      await fixture(type, { host:'127.0.0.1', port, username:type === 'postgres' ? 'postgres' : 'root', password:'domain_fixture_only', database:'dbstats_domain_006a', ...(type === 'mysql' || type === 'mariadb' ? { charset:'utf8mb4' } : {}), connectTimeoutMS:2000 });
+    return;
+  }
   for (const [type, image, port] of [['mariadb','mariadb:11.8',33618], ['mysql','mysql:8.4',33684], ['postgres','postgres:16',35616], ['postgres','postgres:15',35615]]) {
     const name = `dbstats-domain-app-006a-${port}`;
     // run fails if another executor owns this exact name; never remove on failed creation.
