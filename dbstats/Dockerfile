@@ -1,4 +1,19 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.11@sha256:79fd58d9d7f2820e8b2e7d2b11a24e22b96ae7a48569af3372183592a1b22974
+# BuildKit/Buildah supply BUILDPLATFORM for the builder, independently of --platform.
+ARG BUILDPLATFORM
+FROM --platform=${BUILDPLATFORM} ${BUILD_FROM} AS frontend-build
+RUN apk add --no-cache nodejs=24.22.3-r0 npm
+WORKDIR /build
+# Install from manifests before copying sources; backend changes cannot invalidate this cache.
+COPY app/frontend/package.json app/frontend/package-lock.json app/frontend/.npmrc frontend/
+RUN node -p '"frontend builder: " + process.platform + "/" + process.arch + " Node " + process.version' && npm --prefix frontend ci
+COPY app/shared/ shared/
+COPY app/frontend/.eslintrc.json app/frontend/.eslintignore app/frontend/config-overrides.js app/frontend/tsconfig.json app/frontend/tsconfig.path.json frontend/
+COPY app/frontend/src/ frontend/src/
+COPY app/frontend/public/ frontend/public/
+RUN npm --prefix frontend run build
+
+# Native backend dependencies and runtime both use the requested target platform.
 FROM ${BUILD_FROM} AS app-build
 RUN apk add --no-cache nodejs=24.22.3-r0 npm python3 py3-setuptools make g++
 WORKDIR /build
@@ -9,11 +24,6 @@ COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc a
 COPY app/backend/src/ backend/src/
 RUN npm --prefix backend ci && npm --prefix backend run build
 RUN npm --prefix backend prune --omit=dev
-COPY app/frontend/package.json app/frontend/package-lock.json app/frontend/.npmrc app/frontend/.eslintrc.json app/frontend/.eslintignore app/frontend/config-overrides.js app/frontend/tsconfig.json app/frontend/tsconfig.path.json frontend/
-COPY app/frontend/src/ frontend/src/
-COPY app/frontend/public/ frontend/public/
-RUN npm --prefix frontend ci && npm --prefix frontend run build
-
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -29,7 +39,7 @@ COPY rootfs /
 COPY --from=app-build /build/backend/dist /usr/src/app/dist
 COPY --from=app-build /build/backend/node_modules /usr/src/app/node_modules
 COPY app/backend/package.json /usr/src/app/package.json
-COPY --from=app-build /build/frontend/build /var/www/html
+COPY --from=frontend-build /build/frontend/build /var/www/html
 COPY app/UPSTREAM.md /usr/src/app/UPSTREAM.md
 WORKDIR /usr/src/app
 # Health check
