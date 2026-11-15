@@ -7,8 +7,8 @@ const { spawnSync } = require('node:child_process');
 const sqlite = require('../dbstats/app/backend/node_modules/sqlite3');
 const image = process.argv[2];
 assert.ok(image);
-function podman(args) {
-  const r = spawnSync('podman', args, { encoding: 'utf8', timeout: 120000 });
+function podman(args, timeout = 120000) {
+  const r = spawnSync('podman', args, { encoding: 'utf8', timeout });
   assert.equal(r.status, 0, r.error?.message || r.stderr);
   return r.stdout;
 }
@@ -32,21 +32,24 @@ const close = db => new Promise((r,j) => db.close(e=>e?j(e):r()));
   console.log(podman(['run','--rm','--pull=never','-v',`${dir}:/fixture:ro`,'--entrypoint','node',image,'-e',script]));
   assert.deepEqual(snapshot(),before);
   if (process.env.FIXTURE_IMAGE_NATIVE_ONLY === '1') { console.log(JSON.stringify({id:info.Id,architecture:info.Architecture,mountedReadonly:true,subset:'native-only; final image/entrypoint/ingress NOT accepted'})); return; }
-  console.log(podman(['run','--rm','--pull=never','--entrypoint','sh',image,'-c','cat /etc/alpine-release; node --version; npm --version; openssl version; nginx -v; sqlite3 --version; apk info -v; test ! -e /usr/bin/g++; test ! -e /usr/bin/python3']));
+  console.log(podman(['run','--rm','--pull=never','--entrypoint','sh',image,'-c','cat /etc/alpine-release; node --version; npm --version; openssl version; nginx -v; sqlite3 --version; apk info -v; test -f /usr/src/app/dist/backend/src/main.js; test -f /var/www/html/index.html; test ! -e /usr/bin/g++; test ! -e /usr/bin/python3']));
+  const inventoryScript = `const fs=require('fs'),path=require('path');const names=new Set(['express','body-parser','js-yaml','tar','tar-fs','sqlite3','typeorm','prebuild-install','node-gyp']);const found=[];function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(!e.isDirectory())continue;const p=path.join(dir,e.name);if(e.name.startsWith('@')){walk(p);continue}const f=path.join(p,'package.json');if(fs.existsSync(f)){const v=JSON.parse(fs.readFileSync(f));if(names.has(v.name))found.push({path:p,name:v.name,version:v.version})}if(fs.existsSync(path.join(p,'node_modules')))walk(path.join(p,'node_modules'))}}walk('/usr/src/app/node_modules');console.log(JSON.stringify({node:process.version,arch:process.arch,nativeSQLite:require('sqlite3').VERSION,packages:found}))`;
+  console.log(podman(['run','--rm','--pull=never','--entrypoint','node',image,'-e',inventoryScript]));
   // Disposable Supervisor metadata server, also the sole ingress-authorized client.
   podman(['network','create','--subnet','172.30.32.0/24',network]);
   const fakeApi = `require('http').createServer((q,r)=>{r.setHeader('Content-Type','application/json');r.end(JSON.stringify({result:'ok',data:{slug:'disposable',name:'Image acceptance fixture',version:'fixture',arch:process.arch,ingress:true,ingress_port:6060,ingress_entry:'/api/hassio_ingress/disposable_fixture',ip_address:'172.30.32.3',host:'172.30.32.2',hostname:'fixture',options:{},boot:'auto',startup:'application',services:[]}}))}).listen(80,'0.0.0.0')`;
   podman(['run','-d','--pull=never','--name',supervisor,'--network',network,'--ip','172.30.32.2','--network-alias','supervisor','--entrypoint','node',image,'-e',fakeApi]);
   podman(['run','-d','--pull=never','--name',name,'--network',network,'--ip','172.30.32.3','-e','SUPERVISOR_TOKEN=disposable-image-fixture', '-v',`${dir}:/fixture:ro`,'-e','DB_CONNECT_STRING=sqlite:///fixture/fixture.db',image]);
   let healthy = false;
-  for(let i=0;i<30;i++) {
-   try { podman(['exec',name,'node','-e',`(async()=>{for(const [url,status] of [['http://127.0.0.1:3000/addon-api',200],['http://172.30.32.3:6060/',403]]){const r=await fetch(url,{signal:AbortSignal.timeout(2000)});if(r.status!==status)process.exit(1)}})().catch(()=>process.exit(1))`]); healthy=true;break; } catch { await new Promise(r=>setTimeout(r,1000)); }
+  const readyDeadline = Date.now() + 90000;
+  for(let i=0;i<30 && Date.now()<readyDeadline;i++) {
+   try { podman(['exec',name,'node','-e',`(async()=>{for(const [url,status] of [['http://127.0.0.1:3000/addon-api',200],['http://172.30.32.3:6060/',403]]){const r=await fetch(url,{signal:AbortSignal.timeout(2000)});if(r.status!==status)process.exit(1)}})().catch(()=>process.exit(1))`], 5000); healthy=true;break; } catch { await new Promise(r=>setTimeout(r,1000)); }
   }
   if (!healthy) console.error(podman(['logs',name]));
   assert.ok(healthy,'entrypoint/backend/ingress health');
   console.log(podman(['exec',supervisor,'node','-e',`(async()=>{const assert=require('assert/strict');const base='http://172.30.32.3:6060';for(const url of ['/','/addon-api/','/manifest.json']){const r=await fetch(base+url,{signal:AbortSignal.timeout(3000)});assert.equal(r.status,200,url);if(url==='/'){const html=await r.text();assert.ok(html.includes('api/hassio_ingress/disposable_fixture/static/js'));const asset=html.split('src="').slice(1).map(s=>s.split('"')[0]).find(s=>s.endsWith('.js'));assert.ok(asset);const target=asset.replace('/api/hassio_ingress/disposable_fixture','').replace('api/hassio_ingress/disposable_fixture','');assert.equal((await fetch(base+target)).status,200)}}console.log('PASS final image ingress allow/deny, HTML prefix and static JS')})().catch(e=>{console.error(e);process.exit(1)})`]));
   const started = Date.now();
-  podman(['stop','--time','20',name]);
+  podman(['stop','--time','20',name], 25000);
   assert.ok(Date.now()-started < 25000,'bounded stop');
   const stopped=JSON.parse(podman(['inspect',name]))[0];
   assert.equal(stopped.State.ExitCode,0,'clean s6 shutdown');
