@@ -19,6 +19,7 @@ for package in shared backend frontend; do
 done
 node scripts/check-routing.cjs
 node scripts/check-candidate.cjs
+python3 scripts/test-candidate-absence.py
 test -f dbstats/app/backend/dist/backend/src/main.js
 test -f dbstats/app/frontend/build/index.html
 git diff --check
