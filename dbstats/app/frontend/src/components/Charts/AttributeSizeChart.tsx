@@ -20,8 +20,8 @@ export function AttributeSizeChart() {
             </select>
         </label>
         <Alert severity="info">{exact
-            ? 'Full history: each shared attribute counted once per entity. This expensive query may time out. Switching modes cancels browser subscriptions; database work may continue until its deadline.'
-            : `Recent sample: ${sampledRows === null ? 'up to 20,000' : sampledRows.toLocaleString('en-US')} most recent state rows by state ID (limit 20,000), before joins. Each distinct shared attribute counts once per entity within these rows. At most 20 entities within this sample; this is not a representative global sample or an estimate of full-history unique attribute size or global top 20.`}</Alert>
+            ? 'Full history counts each shared attribute once per entity. It may take several minutes or time out. Switching views may not stop a running calculation immediately.'
+            : `Recent sample: ${sampledRows === null ? 'up to 20,000' : sampledRows.toLocaleString('en-US')} most recent state rows (up to 20,000). Shows the top 20 entities by distinct shared attribute size within these rows. Results describe this sample, not the full database history.`}</Alert>
         <CountStatsChart key={exact ? 'exact' : 'recent'} api={exact ? apiClient.states.countAttributesSize : recent}
             title={`Shared attributes size, MB — ${exact ? 'Full history (exact)' : 'Recent sample'}`}/>
     </>;
