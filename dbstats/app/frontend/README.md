@@ -1,5 +1,12 @@
 # DBstats frontend
 
+Attribute sizes use the full recorded history by default. Each shared payload is
+counted once per entity; payloads shared by different entities appear in each
+entity's total, so these are payload totals rather than allocated table sizes.
+Charts choose B, KiB, MiB or GiB from their largest value and use that unit for
+bars, tooltips and axis ticks. Full-history aggregation can take several minutes
+on a large recorder database; timeout and retry behavior still applies.
+
 Click a category label directly in a horizontal chart to copy its full original
 text, including labels shortened in the graph. Labels also support keyboard focus
 and Enter or Space to copy. A brief message confirms the result. On HTTP Home

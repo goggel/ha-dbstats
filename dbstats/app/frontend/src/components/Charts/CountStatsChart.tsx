@@ -9,10 +9,12 @@ import type {ICountStats} from "@dbstats/shared/src/stats";
 import type {ApexOptions} from "apexcharts";
 import colors from "./colors";
 import {copyLabel} from './copyLabel';
+import {sizeFormatter} from './sizeFormat';
 
 type CountStatesChartProps = {
     title: string,
     api: (options?: RequestOptions) => Promise<Array<ICountStats>>,
+    sizeInMiB?: boolean,
 }
 
 function thousandFormatter(value: string): string {
@@ -32,7 +34,7 @@ function enableLabelCopy(chart: {el: Element}) {
     });
 }
 
-export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
+export const CountStatsChart: FC<CountStatesChartProps> = ({title, api, sizeInMiB = false}) => {
 
     const {state: status, data, error, elapsed, retry} = useRequest(api);
     const [copyMessage, setCopyMessage] = React.useState('');
@@ -48,6 +50,7 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
         return <div role="status">{title}: {status} ({elapsed}s)<SuspenseLoaderInline success={false}/></div>;
     }
     if (status === 'empty') { return <Alert severity="info">{title}: No data</Alert>; }
+    const formatValue = sizeInMiB ? sizeFormatter(Math.max(...data.map(item => Number(item.cnt)))) : null;
             const state: { options: ApexOptions, series: ApexAxisChartSeries } = {
                 options: {
                     colors: colors(data.length),
@@ -73,8 +76,9 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                         }
                     }, dataLabels: {
                         style: {fontSize: "14"},
-                        //formatter: thousandFormatter,
+                        ...(formatValue ? {formatter: value => formatValue(Number(value))} : {}),
                     },
+                    ...(formatValue ? {tooltip: {y: {formatter: formatValue}}} : {}),
                     yaxis: {
                         floating: false,
                         labels: {
@@ -88,7 +92,7 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                     xaxis: {
                         categories: data.map(item => item.type),
                         labels: {
-                            formatter: thousandFormatter,
+                            formatter: value => formatValue ? formatValue(Number(value)) : thousandFormatter(value),
                             trim: false,
                             style: {
                                 fontSize: "14",

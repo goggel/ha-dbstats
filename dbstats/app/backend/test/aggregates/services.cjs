@@ -24,7 +24,8 @@ async function checkServices(query) {
   for(const [name,run] of [['states',()=>state.countStateTypes()],['statistics',()=>stats.countStatsLong()],['statistics_short_term',()=>stats.countStatsShort()],['events',()=>events.countEventTypes()]]) {
     assert.deepEqual(normalize(await gateway.runOperation(run)),normalize(await query(queries(name).baseline)),name);
   }
-  const attrs=(await query(queries('attributes').baseline)).filter(r=>Number(r.cnt)>0.01).map(r=>({type:r.type,cnt:Math.round(Number(r.cnt)*100)/100}));
+  const attributeBytes = queries('attributes').baseline.replace('SUM(LENGTH(a.shared_attrs))/1024.0/1024.0', 'SUM(LENGTH(a.shared_attrs))');
+  const attrs=(await query(attributeBytes)).filter(r=>Number(r.cnt)>0).map(r=>({type:r.type,cnt:Number(r.cnt)/1024/1024}));
   assert.deepEqual(normalize(await gateway.runOperation(()=>state.countAttributesSize())),normalize(attrs));
   // Every experiment executes through the same bounded driver/gateway path.
   for(const name of require('./queries.cjs').names) for(const sql of Object.values(queries(name)))

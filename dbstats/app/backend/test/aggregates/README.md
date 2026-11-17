@@ -70,9 +70,11 @@ Recheck it for each supported HA release. States metadata/time order is correcte
 in the TypeORM annotation; synchronization remains false and automatic migrations
 are not enabled. Migration 40's redundant metadata-only indexes are not recreated.
 
-Attributes retain MariaDB byte LENGTH, shared-payload-per-entity deduplication,
-null-name merging, orphan exclusion, >0.01 MiB filtering and two-decimal rounding.
-PostgreSQL/SQLite SQL is unchanged; their Unicode metric correction belongs to 006.
+The full-history attribute service uses OCTET_LENGTH for bytes on all supported
+drivers, preserving shared-payload-per-entity deduplication, null-name merging
+and orphan exclusion. Positive sizes retain precision below 0.01 MiB instead of
+being filtered or rounded away. The investigation baselines remain unchanged;
+their MariaDB byte lengths agree with the production service.
 
 Deferred: aggregate-specific multi-driver semantic checks (production SQL unchanged),
 representative sanitized fixture distributions and MariaDB runtime rows/loops,

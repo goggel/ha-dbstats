@@ -10,11 +10,13 @@ npm --prefix dbstats/app/backend ls --all
 npm --prefix dbstats/app/backend audit --omit=dev --omit=optional --audit-level=high
 npm --prefix dbstats/app/backend run build
 npm --prefix dbstats/app/backend test -- --runInBand
+node dbstats/app/backend/test/full-history-attributes.cjs
 node dbstats/app/backend/test/fixture-targets.cjs
 FIXTURE_PHASE=sqlite npm --prefix dbstats/app/backend run test:integration
 FIXTURE_PHASE=http npm --prefix dbstats/app/backend run test:integration
 npm --prefix dbstats/app/frontend ci
 npm --prefix dbstats/app/frontend run build
+CI=true npm --prefix dbstats/app/frontend test -- --runInBand
 for package in shared backend frontend; do
   npm --prefix "dbstats/app/$package" run lint:check
 done

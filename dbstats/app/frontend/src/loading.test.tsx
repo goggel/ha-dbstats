@@ -111,23 +111,21 @@ it('retains successful charts, shows server timeout, advances queue and retries'
     expect(container.textContent.match(/Chart result/g)).toHaveLength(3);
     expect(fetch).toHaveBeenCalledTimes(4);
 });
-it('defaults attributes to recent and requests exact only on selection, aborting previous subscription', async () => {
+it('loads full-history attributes by default, with no sampling selector', async () => {
     const {AttributeSizeChart} = require('./components/Charts/AttributeSizeChart');
     const client = require('./apiClient').default;
-    const recent = jest.spyOn(client.states, 'countRecentAttributesSize').mockResolvedValue([{sampledRows: 17, rows: [{type: 'sample', cnt: 1}]}]);
-    const exact = jest.spyOn(client.states, 'countAttributesSize').mockResolvedValue([{type: 'exact', cnt: 2}]);
+    const recent = jest.spyOn(client.states, 'countRecentAttributesSize').mockResolvedValue([]);
+    const exact = jest.spyOn(client.states, 'countAttributesSize').mockResolvedValue([{type: 'exact', cnt: 0.04}]);
     await act(async () => { render(<AttributeSizeChart/>, container); });
-    expect(recent).toHaveBeenCalledTimes(1);
-    expect(exact).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('17 most recent state rows');
-    const signal = (recent.mock.calls[0][0] as RequestOptions).signal;
-    await act(async () => { const select = container.querySelector('select'); select.value = 'exact'; select.dispatchEvent(new Event('change', {bubbles: true})); });
-    expect(signal.aborted).toBe(true);
+    expect(recent).not.toHaveBeenCalled();
     expect(exact).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('select')).toBeNull();
     const chart = require('react-apexcharts');
     expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.xaxis.categories).toEqual(['exact']);
-    await act(async () => { const select = container.querySelector('select'); select.value = 'recent'; select.dispatchEvent(new Event('change', {bubbles: true})); });
-    expect(recent).toHaveBeenCalledTimes(2);
+    expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.dataLabels.formatter(0.04)).toBe('40.96 KiB');
+    expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.xaxis.labels.formatter('0.005')).toBe('5.12 KiB');
+    expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.tooltip.y.formatter(0.04)).toBe('40.96 KiB');
+    act(() => { unmountComponentAtNode(container); });
     expect((exact.mock.calls[0][0] as RequestOptions).signal.aborted).toBe(true);
     recent.mockRestore(); exact.mockRestore();
 });

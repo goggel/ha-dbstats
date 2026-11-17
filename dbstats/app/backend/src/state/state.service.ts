@@ -51,7 +51,7 @@ left join states_meta m on m.metadata_id=r.metadata_id
 group by m.entity_id, r.attributes_id
 ), totals AS (
 select pairs.entity_id type,
-sum(case when pairs.entity_id is not null then length(a.shared_attrs) end)/1024.0/1024.0 size,
+sum(case when pairs.entity_id is not null then octet_length(a.shared_attrs) end)/1024.0/1024.0 size,
 max(pairs.sampled_rows) sampled_rows, count(a.attributes_id) attribute_count from pairs
 left join state_attributes a on a.attributes_id=pairs.attributes_id group by pairs.entity_id
 )
@@ -75,7 +75,9 @@ order by case when type is null or attribute_count=0 then 1 else 0 end, size des
   }
 
   async countAttributesSize(): Promise<Array<ICountStats>> {
-    const query = `select attr2entity.entity_id type, sum(length(a.shared_attrs))/1024.0/1024.0 size
+    // Deduplicate shared payloads per entity across all retained history.
+    // Keep MiB precision here; display units and rounding belong to the chart.
+    const query = `select attr2entity.entity_id type, sum(octet_length(a.shared_attrs)) size
 from (select distinct state_attributes.attributes_id, states_meta.entity_id from state_attributes, states, states_meta
 where state_attributes.attributes_id=states.attributes_id and states_meta.metadata_id=states.metadata_id) attr2entity, state_attributes a
 where a.attributes_id=attr2entity.attributes_id group by attr2entity.entity_id order by size desc limit ${maxRowsInChart}`;
@@ -85,11 +87,11 @@ where a.attributes_id=attr2entity.attributes_id group by attr2entity.entity_id o
       size: number;
     }>;
     return res
-      .filter((el) => el.size > 0.01)
+      .filter((el) => Number(el.size) > 0)
       .map((el) => {
         return {
           type: el.type,
-          cnt: badRoundFunction(el.size),
+          cnt: Number(el.size) / 1024 / 1024,
         };
       });
     /*
