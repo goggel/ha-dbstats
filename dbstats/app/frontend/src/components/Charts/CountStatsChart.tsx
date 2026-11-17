@@ -3,11 +3,12 @@ import {useRequest} from "../../useRequest";
 import type {RequestOptions} from "../../requestQueue";
 import * as React from "react";
 import Chart from "react-apexcharts";
-import {Alert, Button} from "@mui/material";
+import {Alert, Box, Button, Snackbar} from "@mui/material";
 import {SuspenseLoaderInline} from "../SuspenseLoader";
 import type {ICountStats} from "@dbstats/shared/src/stats";
 import type {ApexOptions} from "apexcharts";
 import colors from "./colors";
+import {copyLabel} from './copyLabel';
 
 type CountStatesChartProps = {
     title: string,
@@ -22,9 +23,24 @@ function thousandFormatter(value: string): string {
     return num.toLocaleString('en-us');
 }
 
+function enableLabelCopy(chart: {el: Element}) {
+    chart.el.querySelectorAll('.apexcharts-yaxis-label').forEach((label, index) => {
+        label.setAttribute('tabindex', '0');
+        label.setAttribute('role', 'button');
+        label.setAttribute('data-category-index', String(index));
+        label.setAttribute('aria-label', `Copy ${label.querySelector('title')?.textContent ?? label.textContent}`);
+    });
+}
+
 export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
 
     const {state: status, data, error, elapsed, retry} = useRequest(api);
+    const [copyMessage, setCopyMessage] = React.useState('');
+    const copyCategory = async (index: number) => {
+        if (!data[index]) { return; }
+        const copied = await copyLabel(data[index].type);
+        setCopyMessage(copied ? 'Category label copied' : 'Copy unavailable. Select the label and use your device’s Copy command.');
+    };
     if (status === 'error' || status === 'timeout') {
         return <Alert severity="error">{title}: {error}<Button onClick={retry}>Retry</Button></Alert>;
     }
@@ -39,7 +55,15 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                         show: false,
                     },
                     title: {text: title, align: "center"},
-                    chart: {},
+                    chart: {
+                        events: {
+                            mounted: enableLabelCopy,
+                            updated: enableLabelCopy,
+                            xAxisLabelClick: (_event, _chart, options) => {
+                                if (window.getSelection()?.isCollapsed !== false) { void copyCategory(options.labelIndex); }
+                            },
+                        },
+                    },
                     plotOptions: {
                         bar: {
                             distributed: true,
@@ -80,7 +104,21 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                 ]
             };
     return (
-        <>
+        <Box sx={{
+            // ApexCharts disables selection on its canvas. Keep the visible labels selectable.
+            '& .apexcharts-yaxis-label, & .apexcharts-yaxis-label tspan, & .apexcharts-legend-text': {
+                userSelect: 'text',
+                WebkitUserSelect: 'text',
+                cursor: 'copy',
+            },
+            '& .apexcharts-yaxis-label:focus-visible': {outline: '2px solid currentColor'},
+        }} onKeyDown={event => {
+            if (event.key !== 'Enter' && event.key !== ' ') { return; }
+            const label = (event.target as Element).closest('.apexcharts-yaxis-label');
+            if (!label) { return; }
+            event.preventDefault();
+            void copyCategory(Number(label.getAttribute('data-category-index')));
+        }}>
             <Chart style={{marginTop: 25}}
                    options={state.options}
                    series={state.series}
@@ -88,18 +126,7 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                    width="100%"
                    height={state.series[0].data.length * 45}
             />
-            <details style={{marginTop: 8}}>
-                <summary style={{cursor: 'pointer'}}>Select / copy category labels</summary>
-                <p>Select the labels below, then use your device’s Copy command.</p>
-                <textarea
-                    aria-label={`${title}: full category labels`}
-                    readOnly
-                    value={data.map(item => item.type).join('\n')}
-                    rows={Math.min(data.length, 8)}
-                    wrap="off"
-                    style={{width: '100%', boxSizing: 'border-box', userSelect: 'text'}}
-                />
-            </details>
-        </>
+            <Snackbar open={!!copyMessage} message={copyMessage} autoHideDuration={3000} onClose={() => setCopyMessage('')}/>
+        </Box>
     );
 }

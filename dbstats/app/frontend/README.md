@@ -1,10 +1,10 @@
 # DBstats frontend
 
-Each horizontal count chart has a **Select / copy category labels** disclosure
-below it. Open it to select and copy the full original category labels (one per
-line), including labels shortened in the graph. The read-only text field supports
-keyboard selection and native copy commands, with horizontal scrolling for long
-labels. It requires no clipboard API or HTTPS connection.
+Click a category label directly in a horizontal chart to copy its full original
+text, including labels shortened in the graph. Labels also support keyboard focus
+and Enter or Space to copy. A brief message confirms the result. On HTTP Home
+Assistant connections, copying falls back to the browser's native copy command.
+You can also select the visible label text and use your device's Copy command.
 
 Forked from [this repo](https://github.com/bloomui/tokyo-free-white-react-admin-dashboard.git).
 

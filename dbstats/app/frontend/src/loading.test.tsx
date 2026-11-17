@@ -4,10 +4,14 @@ import {render, unmountComponentAtNode} from 'react-dom';
 import {act} from 'react-dom/test-utils';
 import {CountStatsChart} from './components/Charts/CountStatsChart';
 import {AlertSet} from './components/AlertSet/AlertSet';
-jest.mock('react-apexcharts', () => () => <div>Chart result</div>);
+import * as labelCopy from './components/Charts/copyLabel';
+jest.mock('react-apexcharts', () => jest.fn(() => <div>Chart result</div>));
 jest.mock('./components/SuspenseLoader', () => ({SuspenseLoaderInline: () => <div>Loading</div>}));
 let container: HTMLDivElement;
-beforeEach(() => { container = document.createElement('div'); document.body.appendChild(container); });
+beforeEach(() => {
+    require('react-apexcharts').mockImplementation(() => <div>Chart result</div>);
+    container = document.createElement('div'); document.body.appendChild(container);
+});
 afterEach(() => { act(() => { unmountComponentAtNode(container); }); container.remove(); });
 it.each(['chart', 'alerts'])('loads %s once per mount', async kind => {
     const api = jest.fn().mockResolvedValue([]);
@@ -39,17 +43,43 @@ it('renders timeout as terminal and stops elapsed updates', async () => {
     expect(container.textContent).toBe(settled);
     jest.useRealTimers();
 });
-it('exposes complete category labels for manual copying outside the SVG chart', async () => {
+it('keeps category labels in the chart without a separate copy panel', async () => {
     const labels = [`sensor.${'long_entity_name_'.repeat(80)}é`, 'domain.<example>&"'];
     const api = jest.fn().mockResolvedValue(labels.map(type => ({type, cnt: 1})));
     await act(async () => { render(<CountStatsChart title="Entities" api={api}/>, container); });
-    const field = container.querySelector('textarea');
-    expect(field.getAttribute('aria-label')).toBe('Entities: full category labels');
-    expect(field.readOnly).toBe(true);
-    expect(field.value).toBe(labels.join('\n'));
-    expect(field.closest('details').open).toBe(false);
-    field.select();
-    expect(field.value.slice(field.selectionStart, field.selectionEnd)).toBe(labels.join('\n'));
+    const chart = require('react-apexcharts');
+    expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.xaxis.categories).toEqual(labels);
+    expect(container.querySelector('textarea, details')).toBeNull();
+});
+it('copies full chart labels by click and keyboard, without overriding a manual text selection', async () => {
+    const labels = ['sensor.full_original_label_é<&>', 'sensor.second'];
+    const chart = require('react-apexcharts');
+    chart.mockImplementation(() => <svg><text className="apexcharts-yaxis-label"><tspan>sensor.full...</tspan><title>{labels[0]}</title></text></svg>);
+    const copy = jest.spyOn(labelCopy, 'copyLabel').mockResolvedValue(true);
+    try {
+        await act(async () => { render(<CountStatsChart title="Entities" api={async () => labels.map(type => ({type, cnt: 1}))}/>, container); });
+        const events = chart.mock.calls[chart.mock.calls.length - 1][0].options.chart.events;
+        events.mounted({el: container});
+        const label = container.querySelector('.apexcharts-yaxis-label');
+        expect(label.getAttribute('role')).toBe('button');
+        expect(label.getAttribute('tabindex')).toBe('0');
+        expect(label.getAttribute('aria-label')).toBe(`Copy ${labels[0]}`);
+        await act(async () => { events.xAxisLabelClick(null, null, {labelIndex: 1}); });
+        expect(copy).toHaveBeenLastCalledWith(labels[1]);
+        expect(container.textContent).toContain('Category label copied');
+        for (const key of ['Enter', ' ']) {
+            await act(async () => { label.dispatchEvent(new KeyboardEvent('keydown', {key, bubbles: true})); });
+            expect(copy).toHaveBeenLastCalledWith(labels[0]);
+        }
+        const range = document.createRange();
+        range.selectNodeContents(label.querySelector('tspan'));
+        window.getSelection().addRange(range);
+        await act(async () => { events.xAxisLabelClick(null, null, {labelIndex: 1}); });
+        expect(copy).toHaveBeenCalledTimes(3);
+    } finally {
+        window.getSelection().removeAllRanges();
+        copy.mockRestore();
+    }
 });
 it('mounts eight charts plus alerts with nine logical calls', async () => {
     const apis = Array.from({length: 9}, () => jest.fn().mockResolvedValue([]));
@@ -94,7 +124,8 @@ it('defaults attributes to recent and requests exact only on selection, aborting
     await act(async () => { const select = container.querySelector('select'); select.value = 'exact'; select.dispatchEvent(new Event('change', {bubbles: true})); });
     expect(signal.aborted).toBe(true);
     expect(exact).toHaveBeenCalledTimes(1);
-    expect(container.querySelector('textarea').value).toBe('exact');
+    const chart = require('react-apexcharts');
+    expect(chart.mock.calls[chart.mock.calls.length - 1][0].options.xaxis.categories).toEqual(['exact']);
     await act(async () => { const select = container.querySelector('select'); select.value = 'recent'; select.dispatchEvent(new Event('change', {bubbles: true})); });
     expect(recent).toHaveBeenCalledTimes(2);
     expect((exact.mock.calls[0][0] as RequestOptions).signal.aborted).toBe(true);
