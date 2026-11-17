@@ -3,7 +3,7 @@ import type {FC} from "react";
 import {useRequest} from "../../useRequest";
 import type {RequestOptions} from "../../requestQueue";
 import * as React from "react";
-import {Alert, Button} from "@mui/material";
+import {Alert, Button, Stack} from "@mui/material";
 import {SuspenseLoaderInline} from "../SuspenseLoader";
 
 type AlertSetProps = {
@@ -22,10 +22,10 @@ export const AlertSet: FC<AlertSetProps> = ({api}) => {
     }
     if (state === 'empty') { return <Alert severity="info">No alerts</Alert>; }
     return (
-        <>
+        <Stack spacing={2}>
                 {
-                    data.map((el, index) => (<Alert style={{marginTop: 15}} key={index} severity={el.type}>{el.text}</Alert>))
+                    data.map((el, index) => (<Alert key={index} severity={el.type}>{el.text}</Alert>))
                 }
-        </>
+        </Stack>
     );
 }
