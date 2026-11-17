@@ -1,4 +1,47 @@
-Event-domain diagnosis — 2026-11-15
+Event-domain diagnosis — 2026-11-17
+
+Confirmed collation failure (1267)
+----------------------------------
+
+The reported `ER_CANT_AGGREGATE_2COLLATIONS` / errno 1267 was reproduced through
+EventService and QueryGateway on a disposable MariaDB 11.8 instance. The original
+query fails with a utf8mb3_unicode_ci connection expression collation; UCA 1400
+profiles are included in the regression matrix too. The payload column may still
+be utf8mb4: the conflict is the `JSON_TYPE(...) = 'STRING'` comparison, not a reason
+to rebuild recorder tables.
+
+`JSON_TYPE` returns a type keyword using utf8mb3_general_ci while the literal
+inherits the connection collation. Both operands have equal coercibility, so
+MariaDB cannot select a comparison collation. A minimal synthetic reproduction is
+`SELECT JSON_TYPE('"light"') = 'STRING'` under a conflicting utf8mb3 connection
+collation. A separate native MariaDB 13.0.2 probe reproduced the same code and
+passed all 42 column/connection combinations after the change.
+
+The query now compares `CAST(JSON_TYPE(...) AS BINARY)` with `_binary'STRING'`.
+Only the ASCII type keyword comparison changes: UTF-8 payload validation,
+nonempty string filtering, binary domain grouping, reference counts and tie order
+remain unchanged. There is no recorder DDL or connection-wide collation change.
+
+The driver regression now varies connection collations independently of LONGTEXT
+unicode/bin and LONGBLOB storage, under normal and strict grouping modes. It keeps
+client/results utf8mb4 so Unicode/emoji output remains representable. The same
+fixture verifies actual service SQL, read-only access, malformed/binary payloads,
+case/trailing-space distinctions, bounded results and timeout recovery. The old
+query failed this matrix with the exact reported error before applying the fix.
+After the change, the complete driver suite passed on MariaDB 11.8, MySQL 8.4,
+PostgreSQL 16 and SQLite, with the expected PostgreSQL 15 unsupported-chart check.
+Those runs used current compiled backend JavaScript composed into a disposable
+Linux-native dependency runner; they are not substituted for final-image tests.
+Backend compilation, all 83 unit tests, lint and candidate metadata checks passed.
+
+Candidate 0.6.0-rc.3 is reserved for this fix; it is installable only after both
+architecture images pass and are published. No existing candidate tag is replaced.
+
+Reference: [MariaDB coercibility](https://mariadb.com/docs/server/reference/sql-functions/secondary-functions/information-functions/coercibility)
+and [character-set defaults](https://mariadb.com/docs/server/reference/data-types/string-data-types/character-sets/setting-character-sets-and-collations).
+
+Earlier investigation — 2026-11-15
+---------------------------------
 
 Base: master f9bf42c. Live HTTP 503 was NOT reproduced. No production database, push, PR, merge or deployment was used.
 

@@ -1,5 +1,5 @@
 name: DBStats Test
-version: 0.6.0-rc.2
+version: 0.6.0-rc.3
 slug: dbstats_test
 description: Reviewed candidate database stats for Home Assistant
 image: ghcr.io/goggel/dbstats-test-{arch}

@@ -1,7 +1,7 @@
 # DBStats Test
 
 This prebuilt-only add-on uses the single owned application in `dbstats/`. Candidate
-version `0.6.0-rc.2` selects matching tags in `ghcr.io/goggel/dbstats-test-amd64`
+version `0.6.0-rc.3` selects matching tags in `ghcr.io/goggel/dbstats-test-amd64`
 and `ghcr.io/goggel/dbstats-test-aarch64`. The stable **DbStats** entry remains
 independently installable. The test entry exposes only authenticated HA ingress;
 there is no host port mapping. Recorder mounts remain read-only.
@@ -16,7 +16,7 @@ Start with a recorder database copy and a database account restricted to reading
    The manual workflow must exist on the default branch before UI dispatch works.
 2. In Actions, select **Publish reviewed candidate**, choose **Run workflow**, and
    select the reviewed ref containing the intended metadata version (initially
-   `master` / `0.6.0-rc.2`). Record its source SHA. There is no arbitrary image or
+   `master` / `0.6.0-rc.3`). Record its source SHA. There is no arbitrary image or
    version input: the checked-out `dbstats-test/config.yaml` controls both.
 3. Wait for both native architecture jobs and inspect their tag/digest/source SHA
    summaries. Each builds once, runs source/frontend checks and all five image

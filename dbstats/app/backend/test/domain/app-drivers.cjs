@@ -69,6 +69,14 @@ async function fixture(type, options) {
     }
     if (type === 'mysql' || type === 'mariadb') {
       const defaultMode = (await setup.query('SELECT @@GLOBAL.sql_mode AS mode'))[0].mode;
+      // Keep client/results utf8mb4 while exercising expression/literal collations.
+      // MariaDB 11.8 defaults utf8mb3 literals to UCA 1400, but JSON_TYPE returns
+      // utf8mb3_general_ci. Comparing those coercible strings must not fail.
+      const connectionCollations = [
+        'utf8mb4_general_ci', 'utf8mb4_unicode_ci', 'utf8mb4_bin',
+        'utf8mb3_general_ci', 'utf8mb3_unicode_ci',
+        ...(type === 'mariadb' ? ['utf8mb3_uca1400_ai_ci', 'utf8mb4_uca1400_ai_ci'] : ['utf8mb4_0900_ai_ci']),
+      ];
       for (const column of ['LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', 'LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin', 'LONGBLOB']) {
         await setup.query(`ALTER TABLE event_data MODIFY shared_data ${column}`);
         if (column === 'LONGBLOB') {
@@ -77,9 +85,12 @@ async function fixture(type, options) {
         }
         for (const mode of [defaultMode, [...new Set([...defaultMode.split(','), 'ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES'])].join(',')]) {
           await gateway.query('SET SESSION sql_mode = ?', [mode]);
-          phase = `${type}:${column}:${mode}`;
-          assert.deepEqual((await service.countEventsByDomain()).map(r => [r.type, Number(r.cnt)]), expected);
-          console.log(`PASS ${phase}`);
+          for (const collation of connectionCollations) {
+            await gateway.query('SET SESSION collation_connection = ?', [collation]);
+            phase = `${type}:${column}:${mode}:${collation}`;
+            assert.deepEqual((await service.countEventsByDomain()).map(r => [r.type, Number(r.cnt)]), expected);
+            console.log(`PASS ${phase}`);
+          }
         }
       }
     }

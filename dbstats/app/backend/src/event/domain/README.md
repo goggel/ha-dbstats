@@ -12,6 +12,10 @@ JavaScript behavior intentionally to string domains.
 Results order by count descending, then UTF-8 bytes ascending, including at the
 chart limit. Hexadecimal grouping avoids case-insensitive and trailing-space
 collation merging. Only the limited aggregate rows cross the Node boundary.
+MySQL/MariaDB JSON type keywords are compared as binary strings. MariaDB can
+return JSON_TYPE text in utf8mb3_general_ci while connection literals use a
+different collation (including utf8mb3_uca1400_ai_ci), making a text comparison
+fail with error 1267. The binary comparison needs no recorder schema changes.
 Result size is bounded; database scan time is not bounded by this helper.
 The service uses the singleton QueryGateway and one operation context, including
 the PostgreSQL capability check. countEventTypes remains unchanged.
@@ -27,6 +31,8 @@ surrogates, including those outside the domain, to prevent extraction errors.
 Run `npm run test:domain:drivers` after backend build. The runner uses native
 application drivers, fixed named disposable containers and localhost ports,
 readonly application connections, bounded deadlines and ownership cleanup.
+The MariaDB/MySQL matrix varies connection collations independently of column
+collations and strict modes, while keeping client/results capable of UTF-8 emoji.
 Container errors report only operation, exit status, signal and timeout/code;
 command arguments, SQL and connection URIs are never printed.
 

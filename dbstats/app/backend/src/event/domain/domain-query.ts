@@ -16,9 +16,11 @@ export function domainQuery(engine: string, limit: number): string {
     case 'mariadb':
       // Recorder payload bytes are UTF-8 even when the column has binary charset.
       // Reject lossy conversion before JSON parsing; never repair invalid JSON.
+      // JSON_TYPE can use a different collation than connection string literals.
+      // Its ASCII type keyword must be compared as bytes, not collated text.
       domain = `CASE WHEN HEX(CONVERT(d.shared_data USING utf8mb4)) = HEX(d.shared_data)
         AND JSON_VALID(CONVERT(d.shared_data USING utf8mb4)) THEN
-        CASE WHEN JSON_TYPE(JSON_EXTRACT(CONVERT(d.shared_data USING utf8mb4), '$.domain')) = 'STRING'
+        CASE WHEN CAST(JSON_TYPE(JSON_EXTRACT(CONVERT(d.shared_data USING utf8mb4), '$.domain')) AS BINARY) = _binary'STRING'
         THEN JSON_UNQUOTE(JSON_EXTRACT(CONVERT(d.shared_data USING utf8mb4), '$.domain')) END END`;
       key = 'HEX(domain)';
       break;
