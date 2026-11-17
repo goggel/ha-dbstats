@@ -80,12 +80,26 @@ export const CountStatsChart: FC<CountStatesChartProps> = ({title, api}) => {
                 ]
             };
     return (
-        <Chart style={{marginTop: 25}}
-               options={state.options}
-               series={state.series}
-               type="bar"
-               width="100%"
-               height={state.series[0].data.length * 45}
-        />
+        <>
+            <Chart style={{marginTop: 25}}
+                   options={state.options}
+                   series={state.series}
+                   type="bar"
+                   width="100%"
+                   height={state.series[0].data.length * 45}
+            />
+            <details style={{marginTop: 8}}>
+                <summary style={{cursor: 'pointer'}}>Select / copy category labels</summary>
+                <p>Select the labels below, then use your device’s Copy command.</p>
+                <textarea
+                    aria-label={`${title}: full category labels`}
+                    readOnly
+                    value={data.map(item => item.type).join('\n')}
+                    rows={Math.min(data.length, 8)}
+                    wrap="off"
+                    style={{width: '100%', boxSizing: 'border-box', userSelect: 'text'}}
+                />
+            </details>
+        </>
     );
 }

@@ -1,6 +1,8 @@
+import { databaseErrorDiagnostics } from './database-error-diagnostics';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { performance } from 'node:perf_hooks';
 import {
+  Logger,
   RequestTimeoutException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -201,8 +203,12 @@ export class QueryGateway {
     let runner: QueryRunner;
     try {
       runner = this.source.createQueryRunner();
-    } catch {
+    } catch (error) {
       this.leave();
+      Logger.warn(
+        `Database query failed${databaseErrorDiagnostics(error)}`,
+        'QueryGateway',
+      );
       throw new ServiceUnavailableException({
         code: 'QUERY_FAILED',
         message: 'Database query failed',
@@ -251,6 +257,10 @@ export class QueryGateway {
       ) {
         throw error;
       }
+      Logger.warn(
+        `Database query failed${databaseErrorDiagnostics(error)}`,
+        'QueryGateway',
+      );
       throw new ServiceUnavailableException({
         code: 'QUERY_FAILED',
         message: 'Database query failed',
@@ -341,6 +351,10 @@ export class QueryGateway {
       if (error instanceof RequestTimeoutException) {
         throw error;
       }
+      Logger.warn(
+        `Database query failed${databaseErrorDiagnostics(error)}`,
+        'QueryGateway',
+      );
       throw new ServiceUnavailableException({
         code: 'QUERY_FAILED',
         message: 'Database query failed',

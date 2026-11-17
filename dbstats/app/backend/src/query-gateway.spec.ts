@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
 import {
   QueryGateway,
@@ -134,4 +135,39 @@ describe('QueryGateway lifecycle', () => {
     expect(await gateway.query('healthy following metric')).toBe(3);
     expect(runner.release).toHaveBeenCalledTimes(3);
   });
+});
+
+test('gateway logs only safe driver identifiers and keeps HTTP failures generic', async () => {
+  const warn = jest.spyOn(Logger, 'warn').mockImplementation(() => undefined);
+  const runner = {
+    connect: jest.fn().mockResolvedValue({ interrupt() {} }),
+    release: jest.fn().mockResolvedValue(undefined),
+    query: jest.fn().mockRejectedValue({
+      driverError: {
+        code: 'ER_INVALID_JSON_CHARSET',
+        errno: 3144,
+        sqlState: '22032',
+        message: 'CANARY_MESSAGE',
+        sql: 'CANARY_SQL',
+        parameters: ['CANARY_SECRET'],
+      },
+    }),
+  };
+  const source = {
+    options: { type: 'sqlite' },
+    createQueryRunner: () => runner,
+  } as unknown as DataSource;
+  try {
+    await expect(
+      new QueryGateway(source, defaultQueryBudgets).query('CANARY_QUERY'),
+    ).rejects.toMatchObject({
+      response: { code: 'QUERY_FAILED', message: 'Database query failed' },
+    });
+    expect(JSON.stringify(warn.mock.calls)).toContain(
+      'code=ER_INVALID_JSON_CHARSET errno=3144 sqlState=22032',
+    );
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('CANARY');
+  } finally {
+    warn.mockRestore();
+  }
 });

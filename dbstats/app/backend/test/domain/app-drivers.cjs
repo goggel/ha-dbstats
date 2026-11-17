@@ -67,6 +67,24 @@ async function fixture(type, options) {
       assert.equal(Number((await unaffected.countEventTypes())[0].cnt), refs.length);
       console.log('PASS PostgreSQL 15 unsupported-version message and event-type metric'); return;
     }
+    if (type === 'mysql' || type === 'mariadb') {
+      const defaultMode = (await setup.query('SELECT @@GLOBAL.sql_mode AS mode'))[0].mode;
+      for (const column of ['LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', 'LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin', 'LONGBLOB']) {
+        await setup.query(`ALTER TABLE event_data MODIFY shared_data ${column}`);
+        if (column === 'LONGBLOB') {
+          await setup.query("INSERT INTO event_data VALUES (2000, X'7B22646F6D61696E223A22FF227D'), (2001, X'FF00')");
+          await setup.query('INSERT INTO events(event_id, data_id) VALUES (2000,2000), (2001,2001)');
+        }
+        for (const mode of [defaultMode, [...new Set([...defaultMode.split(','), 'ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES'])].join(',')]) {
+          await gateway.query('SET SESSION sql_mode = ?', [mode]);
+          phase = `${type}:${column}:${mode}`;
+          assert.deepEqual((await service.countEventsByDomain()).map(r => [r.type, Number(r.cnt)]), expected);
+          console.log(`PASS ${phase}`);
+        }
+      }
+    }
+    if (type === 'mysql' || type === 'mariadb') await setup.query('DELETE FROM event_data WHERE data_id IN (2000,2001)');
+    if (type === 'mysql' || type === 'mariadb') await setup.query('ALTER TABLE event_data MODIFY shared_data LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');
     const rows = await service.countEventsByDomain();
     assert.ok(JSON.stringify(rows).length < 1024, 'No payload hydration in returned aggregates');
     assert.deepEqual(rows.map(r => [r.type, Number(r.cnt)]), expected);

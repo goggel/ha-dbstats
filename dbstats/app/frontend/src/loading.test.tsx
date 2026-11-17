@@ -1,4 +1,5 @@
 import React from 'react';
+import type {RequestOptions} from './requestQueue';
 import {render, unmountComponentAtNode} from 'react-dom';
 import {act} from 'react-dom/test-utils';
 import {CountStatsChart} from './components/Charts/CountStatsChart';
@@ -38,6 +39,18 @@ it('renders timeout as terminal and stops elapsed updates', async () => {
     expect(container.textContent).toBe(settled);
     jest.useRealTimers();
 });
+it('exposes complete category labels for manual copying outside the SVG chart', async () => {
+    const labels = [`sensor.${'long_entity_name_'.repeat(80)}é`, 'domain.<example>&"'];
+    const api = jest.fn().mockResolvedValue(labels.map(type => ({type, cnt: 1})));
+    await act(async () => { render(<CountStatsChart title="Entities" api={api}/>, container); });
+    const field = container.querySelector('textarea');
+    expect(field.getAttribute('aria-label')).toBe('Entities: full category labels');
+    expect(field.readOnly).toBe(true);
+    expect(field.value).toBe(labels.join('\n'));
+    expect(field.closest('details').open).toBe(false);
+    field.select();
+    expect(field.value.slice(field.selectionStart, field.selectionEnd)).toBe(labels.join('\n'));
+});
 it('mounts eight charts plus alerts with nine logical calls', async () => {
     const apis = Array.from({length: 9}, () => jest.fn().mockResolvedValue([]));
     await act(async () => { render(<>{apis.slice(0, 8).map((api, i) => <CountStatsChart key={i} title="Count" api={api}/>)}<AlertSet api={apis[8]}/></>, container); });
@@ -67,4 +80,23 @@ it('retains successful charts, shows server timeout, advances queue and retries'
     await act(async () => { container.querySelector('button').click(); });
     expect(container.textContent.match(/Chart result/g)).toHaveLength(3);
     expect(fetch).toHaveBeenCalledTimes(4);
+});
+it('defaults attributes to recent and requests exact only on selection, aborting previous subscription', async () => {
+    const {AttributeSizeChart} = require('./components/Charts/AttributeSizeChart');
+    const client = require('./apiClient').default;
+    const recent = jest.spyOn(client.states, 'countRecentAttributesSize').mockResolvedValue([{sampledRows: 17, rows: [{type: 'sample', cnt: 1}]}]);
+    const exact = jest.spyOn(client.states, 'countAttributesSize').mockResolvedValue([{type: 'exact', cnt: 2}]);
+    await act(async () => { render(<AttributeSizeChart/>, container); });
+    expect(recent).toHaveBeenCalledTimes(1);
+    expect(exact).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('17 most recent state rows');
+    const signal = (recent.mock.calls[0][0] as RequestOptions).signal;
+    await act(async () => { const select = container.querySelector('select'); select.value = 'exact'; select.dispatchEvent(new Event('change', {bubbles: true})); });
+    expect(signal.aborted).toBe(true);
+    expect(exact).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('textarea').value).toBe('exact');
+    await act(async () => { const select = container.querySelector('select'); select.value = 'recent'; select.dispatchEvent(new Event('change', {bubbles: true})); });
+    expect(recent).toHaveBeenCalledTimes(2);
+    expect((exact.mock.calls[0][0] as RequestOptions).signal.aborted).toBe(true);
+    recent.mockRestore(); exact.mockRestore();
 });

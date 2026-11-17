@@ -27,7 +27,7 @@ expected = [('light',100), ('温度😀',3), ('A',1), ('__proto__',1), ('a',1), 
 def setup(engine):
     def literal(value):
         return 'NULL' if value is None else "'" + value.replace("'", "''") + "'"
-    return ('SET sql_mode=\'NO_BACKSLASH_ESCAPES\'; SET NAMES utf8mb4; ' if engine in ('mysql','mariadb') else '') + '''CREATE TABLE event_data(data_id INTEGER PRIMARY KEY, shared_data TEXT);
+    return ('SET sql_mode=CONCAT(@@sql_mode, \',NO_BACKSLASH_ESCAPES,ONLY_FULL_GROUP_BY\'); SET NAMES utf8mb4; ' if engine in ('mysql','mariadb') else '') + '''CREATE TABLE event_data(data_id INTEGER PRIMARY KEY, shared_data TEXT);
 CREATE TABLE events(event_id INTEGER PRIMARY KEY, data_id INTEGER);
 ''' + '\n'.join(f'INSERT INTO event_data VALUES ({i},{literal(v)});' for i,v in enumerate(payloads,1)) + '\nINSERT INTO event_data VALUES (9999,\'{"domain":"unreferenced"}\');\n' + '\n'.join(f'INSERT INTO events VALUES ({i},{literal(v) if v is None else v});' for i,v in enumerate(refs,1))
 
@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory(prefix='dbstats-domain-006a-') as folder:
     with sqlite3.connect(f'file:{path}?mode=ro', uri=True) as db:
         assert db.execute(queries['sqlite'][0]).fetchall() == []
 
-for engine, image in [('mariadb','mariadb:11'),('mysql','mysql:8'),('postgres','postgres:16')]:
+for engine, image in [('mariadb','mariadb:11.8'),('mysql','mysql:8.4'),('postgres','postgres:16')]:
     name = NAMES[engine]
     # Fixed fixture container and database allowlist, no host ports or external URI.
     assert name in NAMES.values() and DATABASE == 'dbstats_domain_006a'

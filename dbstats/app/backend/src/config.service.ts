@@ -7,6 +7,12 @@ import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/Postgres
 import type { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
 import { mysqlTransport } from './mysql-transport';
 
+// Invalid, fractional and unsafe inputs fall back to the bounded default.
+export function chartRowLimit(value?: string): number {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? Math.min(parsed, 20) : 20;
+}
+
 type DBType = DataSourceOptions['type'];
 
 export type ConfigData = {
@@ -58,7 +64,7 @@ export class ConfigService {
       server: {
         port: parseInt(env.SERVER_PORT, 10) || 3000,
       },
-      maxRowsInChart: parseInt(env.MAX_ROWS_IN_CHART, 10) || 30,
+      maxRowsInChart: chartRowLimit(env.MAX_ROWS_IN_CHART),
     };
     Object.freeze(this.data);
     const errorMessages = [];

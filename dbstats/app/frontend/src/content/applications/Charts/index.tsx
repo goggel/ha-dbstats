@@ -10,6 +10,7 @@ import PageTitle from "../../../components/PageTitle";
 import Container from "@mui/material/Container";
 import Footer from "../../../components/Footer";
 import {CountStatsChart} from "../../../components/Charts/CountStatsChart";
+import {AttributeSizeChart} from "../../../components/Charts/AttributeSizeChart";
 import {AlertSet} from "../../../components/AlertSet/AlertSet";
 
 
@@ -37,6 +38,7 @@ function DatabaseStats() {
                             <CardHeader title="Generic database stats"></CardHeader>
                             <CardContent>
                                 <Alert severity="info">If you are unfamiliar with HA tables, you can read about them <Link href="https://data.home-assistant.io/docs/data">here</Link></Alert>
+                                <Alert severity="info">Charts show at most 20 categories. Table row counts are estimates on MySQL/MariaDB and PostgreSQL; SQLite counts rows exactly. Table sizes reflect database allocation. Attribute size defaults to a recent sample; other charts use all recorded history.</Alert>
                                 <AlertSet api={apiClient.system.getDbAlerts}></AlertSet>
                                 <CountStatsChart api={apiClient.system.getTableRows}
                                                  title="Number of rows in tables"/>
@@ -60,8 +62,7 @@ function DatabaseStats() {
                         <Card style={{marginTop: 25}}>
                             <CardHeader title="Attributes"></CardHeader>
                             <CardContent>
-                                <CountStatsChart api={apiClient.states.countAttributesSize}
-                                                 title="Shared attributes size, MB"/>
+                                <AttributeSizeChart/>
                             </CardContent></Card>
                         <Card style={{marginTop: 25}}>
                             <CardHeader title="Long term statistics"></CardHeader>
