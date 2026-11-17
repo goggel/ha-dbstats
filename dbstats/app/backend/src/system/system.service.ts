@@ -2,13 +2,20 @@ import { QueryGateway } from '../query-gateway';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { ICountStats, IShowAlerts } from '@dbstats/shared/src/stats';
+import type {
+  ICountStats,
+  IShowAlerts,
+  ITableStorage,
+} from '@dbstats/shared/src/stats';
 import { Statistics } from '../entities/homeass/2024.1.5/Statistics';
 import configProvider from '../config';
 import { version } from '../../package.json';
+import { tableStorage } from './table-storage';
+import { SnapshotCache } from '../snapshot-cache';
 
 @Injectable()
 export class SystemService {
+  private readonly storageCache = new SnapshotCache<ITableStorage[]>();
   private logger: Logger;
   constructor(
     private readonly gateway: QueryGateway,
@@ -22,6 +29,14 @@ export class SystemService {
     return (await this.gateway.query(
       `SELECT name FROM sqlite_master WHERE type='table'`,
     )) as Array<{ name: string }>;
+  }
+
+  getTableStorage(): Promise<ITableStorage[]> {
+    return this.storageCache.get('tables', () =>
+      this.gateway.runOperation(() =>
+        tableStorage(this.gateway, configProvider().typeOrmConfig.type),
+      ),
+    );
   }
 
   async getTableRows(): Promise<Array<ICountStats>> {

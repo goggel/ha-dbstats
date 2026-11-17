@@ -15,6 +15,11 @@ export class SystemController {
     return this.systemService.getTableSize();
   }
 
+  @Get('getTableStorage')
+  async getTableStorage() {
+    return this.systemService.getTableStorage();
+  }
+
   @Get('getDbAlerts')
   async getDbAlerts() {
     return this.systemService.getDbAlerts();

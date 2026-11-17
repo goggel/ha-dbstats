@@ -54,6 +54,7 @@ async function read(options) {
     }
     if (phase === 'sqlite') return;
     if (phase === 'all' || phase === 'http') {
+    await exec(writer, 'CREATE TABLE statistics_meta(id INTEGER PRIMARY KEY,statistic_id TEXT); CREATE TABLE statistics_short_term(id INTEGER PRIMARY KEY,metadata_id INTEGER,start_ts REAL);');
     // Hosted runners may already have an index under /var/www/html. Own the
     // static root so these API/middleware 404 assertions do not depend on it.
     const staticRoot = path.join(dir, 'http-static');
@@ -77,6 +78,18 @@ async function read(options) {
     const rows = await request(`${base}/addon-api/system/getTableRows`);
     assert.equal(rows.status, 200);
     assert.ok((await rows.text()).includes('fixture'));
+    const storage = await request(`${base}/addon-api/system/getTableStorage`);
+    assert.equal(storage.status,200);
+    assert.equal((await storage.json()).length,3);
+    const overview = await request(`${base}/addon-api/statistic/short/overview?window=day`);
+    assert.equal(overview.status,200);
+    assert.equal((await overview.json())[0].totalRows,0);
+    assert.equal((await request(`${base}/addon-api/statistic/short/overview?window=invalid`)).status,400);
+    const days = await request(`${base}/addon-api/statistic/short/days?metadataId=1`);
+    assert.equal(days.status,200);
+    assert.deepEqual(await days.json(),[]);
+    assert.equal((await request(`${base}/addon-api/statistic/short/days?metadataId=0`)).status,400);
+    assert.equal((await request(`${base}/addon-api/statistic/short/days?metadataId=1.5`)).status,400);
     assert.equal((await request(`${base}/api-json`)).status, 200);
     assert.equal((await request(`${base}/addon-api/unknown/nested`)).status, 404);
     assert.equal((await request(`${base}/addon-api`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{invalid' })).status, 404);

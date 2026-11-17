@@ -11,6 +11,7 @@ npm --prefix dbstats/app/backend audit --omit=dev --omit=optional --audit-level=
 npm --prefix dbstats/app/backend run build
 npm --prefix dbstats/app/backend test -- --runInBand
 node dbstats/app/backend/test/full-history-attributes.cjs
+node dbstats/app/backend/test/storage-coverage.cjs
 node dbstats/app/backend/test/fixture-targets.cjs
 FIXTURE_PHASE=sqlite npm --prefix dbstats/app/backend run test:integration
 FIXTURE_PHASE=http npm --prefix dbstats/app/backend run test:integration

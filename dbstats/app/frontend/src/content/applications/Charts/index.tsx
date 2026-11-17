@@ -12,6 +12,8 @@ import Footer from "../../../components/Footer";
 import {CountStatsChart} from "../../../components/Charts/CountStatsChart";
 import {AttributeSizeChart} from "../../../components/Charts/AttributeSizeChart";
 import {AlertSet} from "../../../components/AlertSet/AlertSet";
+import {TableStorageOverview} from '../../../components/Charts/TableStorageOverview';
+import {ShortTermOverview} from '../../../components/Charts/ShortTermOverview';
 
 
 function DatabaseStats() {
@@ -39,14 +41,15 @@ function DatabaseStats() {
                             <CardContent>
                                 <Stack spacing={2}>
                                     <Alert severity="info">If you are unfamiliar with HA tables, you can read about them <Link href="https://data.home-assistant.io/docs/data">here</Link></Alert>
-                                    <Alert severity="info">Charts show at most 20 categories. Table row counts are estimates on MySQL/MariaDB and PostgreSQL; SQLite counts rows exactly. Table sizes reflect database allocation. Entity charts use all recorded history.</Alert>
+                                    <Alert severity="info">Entity charts show at most 20 categories over all recorded history. The storage overview lists every user table. Row counts are database estimates where available.</Alert>
                                     <AlertSet api={apiClient.system.getDbAlerts}></AlertSet>
                                 </Stack>
-                                <CountStatsChart api={apiClient.system.getTableRows}
-                                                 title="Number of rows in tables"/>
-                                <CountStatsChart api={apiClient.system.getTableSize}
-                                                 title="Table size in MB"/>
+                                <TableStorageOverview/>
                             </CardContent></Card>
+                        <Card style={{marginTop: 25}}>
+                            <CardHeader title="Short-term statistics: storage and coverage"/>
+                            <CardContent><ShortTermOverview/></CardContent>
+                        </Card>
                         <Card style={{marginTop: 25}}>
                             <CardHeader title="Events"></CardHeader>
                             <CardContent>
@@ -71,12 +74,6 @@ function DatabaseStats() {
                             <CardContent>
                                 <CountStatsChart api={apiClient.statistic.countLong}
                                                  title="Count long term statistics"/>
-                            </CardContent></Card>
-                        <Card style={{marginTop: 25}}>
-                            <CardHeader title="Short term statistics"></CardHeader>
-                            <CardContent>
-                                <CountStatsChart api={apiClient.statistic.countShort}
-                                                 title="Count short term statistics"/>
                             </CardContent></Card>
                     </Grid>
                 </Grid>
