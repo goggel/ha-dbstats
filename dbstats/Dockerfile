@@ -23,7 +23,10 @@ RUN npm --prefix shared ci && npm --prefix shared run build
 COPY app/backend/package.json app/backend/package-lock.json app/backend/.npmrc app/backend/nest-cli.json app/backend/tsconfig.json app/backend/jest.config.ts backend/
 COPY app/backend/src/ backend/src/
 RUN npm --prefix backend ci && npm --prefix backend run build
-RUN npm --prefix backend prune --omit=dev
+COPY app/backend/test/runtime-dependencies.cjs backend/test/runtime-dependencies.cjs
+# sqlite3's optional node-gyp peer is needed only when compiling the native addon.
+RUN npm --prefix backend prune --omit=dev --omit=optional \
+    && node backend/test/runtime-dependencies.cjs backend
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 

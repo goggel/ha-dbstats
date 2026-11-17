@@ -6,7 +6,8 @@ npm --prefix dbstats/app/shared ci
 npm --prefix dbstats/app/shared run build
 npm --prefix dbstats/app/backend ci
 npm --prefix dbstats/app/backend ls --all
-npm --prefix dbstats/app/backend audit --omit=dev --audit-level=high
+# Match the final image, which excludes optional native-build tooling after compilation.
+npm --prefix dbstats/app/backend audit --omit=dev --omit=optional --audit-level=high
 npm --prefix dbstats/app/backend run build
 npm --prefix dbstats/app/backend test -- --runInBand
 node dbstats/app/backend/test/fixture-targets.cjs
